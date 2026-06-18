@@ -1,11 +1,11 @@
 {
   "2026-06-18": {
     "AAPL": 3,
-    "AMZN": 4,
+    "AMZN": 5,
     "NVDA": 4,
     "INTC": 3,
     "CSCO": 3,
-    "AVGO": 3,
+    "AVGO": 4,
     "QCOM": 3,
     "AMAT": 3,
     "LRCX": 3,
@@ -25,7 +25,7 @@
     "DE": 3,
     "MMM": 3,
     "GM": 3,
-    "ABNB": 3,
+    "ABNB": 4,
     "SHOP": 3,
     "SOFI": 3,
     "ADBE": 3,
@@ -35,6 +35,7 @@
     "HD": 3,
     "MSFT": 3,
     "ORCL": 3,
-    "NKE": 3
+    "NKE": 3,
+    "MRK": 3
   }
 }
