@@ -130,10 +130,10 @@ def backtest_stock(ticker: str, df: pd.DataFrame) -> dict | None:
 _reliability_cache: dict[str, dict[str, dict]] = {}
 
 
-def get_reliability(ticker: str) -> dict:
+def get_reliability(ticker: str, market: str | None = None) -> dict:
     """
     Bir hissenin geçmiş güvenilirliğini döner (canlı taramada kullanılır).
-    Sonuç o gün için cache'lenir.
+    Sonuç o gün için cache'lenir. market=None ise aktif MARKET kullanılır.
 
     Döner:
       label   : "YÜKSEK" | "ORTA" | "DÜŞÜK" | "BİLİNMİYOR"
@@ -148,12 +148,13 @@ def get_reliability(ticker: str) -> dict:
         if d != today:
             del _reliability_cache[d]
     _reliability_cache.setdefault(today, {})
-    if ticker in _reliability_cache[today]:
-        return _reliability_cache[today][ticker]
+    cache_key = f"{market or ''}:{ticker}"
+    if cache_key in _reliability_cache[today]:
+        return _reliability_cache[today][cache_key]
 
     summary = {"label": "BİLİNMİYOR", "emoji": "❔", "detail": "Yeterli geçmiş veri yok"}
     try:
-        df = download_stock_data(ticker, period=BACKTEST_PERIOD)
+        df = download_stock_data(ticker, period=BACKTEST_PERIOD, market=market)
         if df is not None:
             res = backtest_stock(ticker, df)
             if res and res.get("num_trades", 0) >= 3:
@@ -183,7 +184,7 @@ def get_reliability(ticker: str) -> dict:
     except Exception as e:
         logger.debug(f"{ticker} güvenilirlik hesabı hatası: {e}")
 
-    _reliability_cache[today][ticker] = summary
+    _reliability_cache[today][cache_key] = summary
     return summary
 
 
