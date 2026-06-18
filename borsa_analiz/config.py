@@ -3,8 +3,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+# .strip() önemli: GitHub Secret'a yapıştırırken sona eklenen görünmez
+# boşluk/satır sonu (%0A) token'ı bozar ve 404 hatasına yol açar. Temizliyoruz.
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
 # Teknik analiz parametreleri
 RSI_PERIOD = 14
