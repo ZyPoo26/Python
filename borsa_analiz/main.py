@@ -40,7 +40,7 @@ from config import (
     DATA_PERIOD,
     DATA_INTERVAL,
 )
-from config import NEWS_ENABLED
+from config import NEWS_ENABLED, ALWAYS_SEND_SUMMARY
 from scraper import get_bist100_tickers, download_all
 from analyzer import analyze_all
 from backtest import get_reliability
@@ -145,8 +145,9 @@ def run_scan(force: bool = False):
     # 5. Yalnızca YENİ veya skoru YÜKSELEN sinyalleri gönder (saatlik spam'i önler)
     new_signals = [r for r in buy_signals if _should_alert(r["ticker"], r["score"])]
 
-    # 6. Özet mesajı: sadece bildirilecek yeni sinyal varsa gönder
-    if new_signals:
+    # 6. Özet mesajı: ALWAYS_SEND_SUMMARY açıksa her taramada (nabız mesajı),
+    #    değilse sadece yeni sinyal varsa gönderilir.
+    if ALWAYS_SEND_SUMMARY or new_signals:
         summary = format_summary(results, total_scanned=len(stock_data))
         send_message(summary)
 
