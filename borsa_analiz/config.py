@@ -23,6 +23,10 @@ VOLUME_MA_PERIOD = 20
 MIN_SCORE_TO_BUY_ALERT = 3
 MIN_SCORE_TO_WATCH_ALERT = 2   # 2 puan = "İzle" mesajı
 
+# True ise: her taramada kısa bir özet mesajı gönderilir (sinyal olmasa bile),
+# böylece botun çalıştığını görürsün. False ise: sadece yeni sinyal varsa mesaj gelir.
+ALWAYS_SEND_SUMMARY = True
+
 # Verinin kaç günlük periyotta çekilmesi
 DATA_PERIOD = "1y"
 DATA_INTERVAL = "1d"
