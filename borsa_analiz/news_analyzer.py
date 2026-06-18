@@ -22,7 +22,7 @@ from datetime import datetime
 
 from config import (
     NEWS_MAX_HEADLINES, NEWS_POSITIVE_WORDS, NEWS_NEGATIVE_WORDS,
-    NEWS_STRONG_NEGATIVE,
+    NEWS_STRONG_NEGATIVE, NEWS_LOCALE, NEWS_QUERY_SUFFIX,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,10 +41,10 @@ _news_cache: dict[str, dict[str, dict]] = {}
 
 def fetch_headlines(ticker: str) -> list[str]:
     """Google News RSS'ten hisseye dair son haber başlıklarını çeker."""
-    query = f"{ticker} hisse"
+    query = f"{ticker} {NEWS_QUERY_SUFFIX}"
     url = (
         f"https://news.google.com/rss/search?q={requests.utils.quote(query)}"
-        f"&hl=tr&gl=TR&ceid=TR:tr"
+        f"&{NEWS_LOCALE}"
     )
     try:
         resp = requests.get(url, headers=_HEADERS, timeout=15)

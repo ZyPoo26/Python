@@ -40,7 +40,7 @@ from config import (
     DATA_PERIOD,
     DATA_INTERVAL,
 )
-from config import NEWS_ENABLED, ALWAYS_SEND_SUMMARY
+from config import NEWS_ENABLED, ALWAYS_SEND_SUMMARY, MARKET
 from scraper import get_bist100_tickers, download_all
 from analyzer import analyze_all
 from backtest import get_reliability
@@ -68,7 +68,8 @@ logger = logging.getLogger(__name__)
 # DOSYAYA yazılır; çünkü GitHub Actions her çalıştığında belleği sıfırlar.
 # Dosya GitHub'a geri commit edilerek çalıştırmalar arası korunur.
 # {tarih: {ticker: o gün gönderilen en yüksek skor}}
-STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sent_state.json")
+# Market'e göre ayrı hafıza (BIST ve ABD sinyalleri karışmasın)
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"sent_state_{MARKET}.json")
 
 
 def _load_state() -> dict:
@@ -124,7 +125,7 @@ def run_scan(force: bool = False):
         return
 
     logger.info("=" * 50)
-    logger.info("BIST 100 TARAMASI BAŞLIYOR")
+    logger.info(f"{MARKET} TARAMASI BAŞLIYOR")
     logger.info("=" * 50)
 
     # 1. Hisse listesini çek
