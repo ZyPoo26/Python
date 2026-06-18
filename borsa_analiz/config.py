@@ -76,6 +76,11 @@ BACKTEST_PERIOD = "2y"       # Backtest için kaç yıllık veri çekilsin
 BACKTEST_MIN_SCORE = 3       # Backtest'te kaç puanda "AL" kabul edilsin
 BACKTEST_MAX_HOLD_DAYS = 30  # Stop/hedef değmezse en fazla kaç gün tut
 
+# İşlem maliyeti: her AL ve her SAT için tek yönlü oran (komisyon + spread/slippage).
+# BIST ~%0.2, ABD ~%0.05. Her işlem çiftinde (al+sat) iki kez uygulanır.
+# Backtest gerçekçi olsun diye getiriden düşülür.
+COMMISSION_PCT = 0.2 if IS_US is False else 0.05
+
 # ─── Haber Analizi (Sentiment) ───────────────────────────────────────────────
 NEWS_ENABLED = True          # Haber analizi açık mı
 NEWS_MAX_HEADLINES = 10      # Hisse başına kaç son başlık değerlendirilsin

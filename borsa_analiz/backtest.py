@@ -16,7 +16,7 @@ import pandas as pd
 
 from config import (
     BACKTEST_PERIOD, BACKTEST_MIN_SCORE, BACKTEST_MAX_HOLD_DAYS,
-    NVI_EMA_PERIOD,
+    NVI_EMA_PERIOD, COMMISSION_PCT,
 )
 from scraper import download_stock_data
 from analyzer import analyze_stock
@@ -93,15 +93,36 @@ def backtest_stock(ticker: str, df: pd.DataFrame) -> dict | None:
     if not trades:
         return {"ticker": ticker, "trades": [], "num_trades": 0}
 
-    returns = [t["return_pct"] for t in trades]
+    # İşlem maliyeti: her işlemde al + sat = 2 × komisyon, brüt getiriden düşülür.
+    cost = 2 * COMMISSION_PCT
+    returns = [t["return_pct"] - cost for t in trades]  # net getiri
     wins = [r for r in returns if r > 0]
     losses = [r for r in returns if r <= 0]
 
-    # Bileşik getiri (her işlem bir öncekinin sonucuna uygulanır)
+    # Bileşik getiri + equity eğrisi (max drawdown için)
     equity = 1.0
+    equity_curve = []
     for r in returns:
         equity *= (1 + r / 100)
+        equity_curve.append(equity)
     total_return = (equity - 1) * 100
+
+    # Maksimum Drawdown: equity eğrisinde zirveden en derin düşüş
+    peak = equity_curve[0]
+    max_dd = 0.0
+    for e in equity_curve:
+        peak = max(peak, e)
+        dd = (e - peak) / peak * 100
+        max_dd = min(max_dd, dd)
+
+    # Sharpe oranı (işlem bazlı): ortalama getiri / getiri std sapması
+    if len(returns) > 1:
+        mean_r = sum(returns) / len(returns)
+        var = sum((r - mean_r) ** 2 for r in returns) / (len(returns) - 1)
+        std_r = var ** 0.5
+        sharpe = (mean_r / std_r) if std_r > 0 else 0.0
+    else:
+        sharpe = 0.0
 
     # Al-tut kıyası (test başından sonuna)
     bh_start = float(df["Close"].iloc[start])
@@ -122,6 +143,9 @@ def backtest_stock(ticker: str, df: pd.DataFrame) -> dict | None:
         "total_return": round(total_return, 2),
         "buy_hold_return": round(buy_hold, 2),
         "beats_buy_hold": total_return > buy_hold,
+        "max_drawdown": round(max_dd, 2),
+        "sharpe": round(sharpe, 2),
+        "commission_pct": COMMISSION_PCT,
     }
 
 
@@ -173,7 +197,8 @@ def get_reliability(ticker: str, market: str | None = None) -> dict:
                     "detail": (
                         f"Son {BACKTEST_PERIOD}: {res['num_trades']} işlem, "
                         f"%{wr} isabet, strateji {'+' if res['total_return'] >= 0 else ''}%{res['total_return']} "
-                        f"(al-tut {'+' if res['buy_hold_return'] >= 0 else ''}%{res['buy_hold_return']})"
+                        f"(al-tut {'+' if res['buy_hold_return'] >= 0 else ''}%{res['buy_hold_return']}) "
+                        f"| max düşüş %{res['max_drawdown']} | Sharpe {res['sharpe']}"
                     ),
                     "win_rate": wr,
                     "total_return": res["total_return"],
@@ -205,8 +230,11 @@ def print_report(res: dict):
     print(f"  Ort. kayıp      : %{t['avg_loss']}")
     print(f"  En iyi / en kötü: +%{t['best']} / %{t['worst']}")
     print("  " + "-" * 46)
-    print(f"  STRATEJİ getiri : {'+' if t['total_return'] >= 0 else ''}%{t['total_return']}")
+    print(f"  STRATEJİ getiri : {'+' if t['total_return'] >= 0 else ''}%{t['total_return']}  (komisyon %{t['commission_pct']} dahil)")
     print(f"  Al-tut getiri   : {'+' if t['buy_hold_return'] >= 0 else ''}%{t['buy_hold_return']}")
+    print(f"  Max Drawdown    : %{t['max_drawdown']}  (en kötü dönemde paranın erimesi)")
+    sharpe_note = "çok iyi" if t['sharpe'] >= 1 else ("makul" if t['sharpe'] >= 0.5 else "zayıf")
+    print(f"  Sharpe oranı    : {t['sharpe']}  ({sharpe_note} — riske göre getiri)")
     verdict = "✅ Stratejı al-tut'u GEÇTİ" if t["beats_buy_hold"] else "❌ Al-tut daha iyiydi"
     print(f"  Sonuç           : {verdict}")
     print("═" * 50)
