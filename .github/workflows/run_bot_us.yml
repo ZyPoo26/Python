@@ -1,0 +1,60 @@
+name: ABD (S&P500) Otomatik Analiz Motoru
+
+on:
+  schedule:
+    # ABD borsası (NYSE/NASDAQ) seansı: ET 09:30–16:00.
+    # GitHub UTC kullanır. Yaz saati (EDT): UTC 13:30–20:00, kış (EST): 14:30–21:00.
+    # Her iki sezonu kapsamak için UTC 13:00–21:00 arası her saatin 15. dakikası.
+    - cron: '15 13-21 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-analysis-us:
+    runs-on: ubuntu-latest
+    env:
+      MARKET: US                 # ← ABD moduna geçiren anahtar
+      TZ: Europe/Istanbul
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+    - name: Repo Kodlarını Çek
+      uses: actions/checkout@v4
+
+    - name: Python Kur
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
+        cache-dependency-path: borsa_analiz/requirements.txt
+
+    - name: Bağımlılıkları Yükle
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r borsa_analiz/requirements.txt
+
+    - name: ABD Analizini Tetikle
+      run: |
+        cd borsa_analiz
+        python main.py --once
+
+    - name: Sinyal Hafızasını Kaydet
+      continue-on-error: true
+      run: |
+        if [ ! -f borsa_analiz/sent_state_US.json ]; then
+          echo "Sinyal hafızası dosyası yok (bu taramada yeni sinyal olmamış), atlanıyor."
+          exit 0
+        fi
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add borsa_analiz/sent_state_US.json
+        if git diff --staged --quiet; then
+          echo "Hafızada değişiklik yok."
+        else
+          git commit -m "ABD sinyal hafızası güncellendi [skip ci]"
+          git pull --rebase origin main || true
+          git push || echo "Push başarısız (repo yazma izni kapalı olabilir), atlandı."
+        fi

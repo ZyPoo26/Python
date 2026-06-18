@@ -9,9 +9,17 @@ from datetime import datetime
 from config import (
     TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
     MAX_POSITION_PCT, MAX_POSITIONS, MAX_SECTOR_PCT,
+    CURRENCY, CURRENCY_PREFIX, MARKET_LABEL,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def fmt_price(value: float) -> str:
+    """Fiyatı market para birimiyle biçimler: '$297.53' veya '142.20 TL'."""
+    if CURRENCY_PREFIX:
+        return f"{CURRENCY}{value:.2f}"
+    return f"{value:.2f} {CURRENCY}"
 
 
 def send_message(text: str) -> bool:
@@ -54,9 +62,9 @@ def format_buy_signal(result: dict, reliability: dict | None = None, news: dict 
     emoji = "🔥" if score >= 5 else ("📈" if score >= 3 else "👀")
 
     lines = [
-        f"{emoji} <b>ALIM SİNYALİ: {result['ticker']}</b>",
+        f"{emoji} <b>[{MARKET_LABEL}] ALIM SİNYALİ: {result['ticker']}</b>",
         "━━━━━━━━━━━━━━━━━━━━",
-        f"💰 Fiyat       : <b>{result['price']:.2f} TL</b>",
+        f"💰 Fiyat       : <b>{fmt_price(result['price'])}</b>",
         f"📊 Güç         : {strength}",
         f"📊 Sinyal Puanı: {bar}",
     ]
@@ -94,8 +102,8 @@ def format_buy_signal(result: dict, reliability: dict | None = None, news: dict 
         f"📈 Kısa Vadeli Trend : {result['trend']}",
         "",
         "── 🎯 İşlem Planı (ATR bazlı) ──",
-        f"🎯 Hedef Fiyat: <b>{result['target']:.2f} TL</b> ({result['target_pct']:+.1f}%)",
-        f"🛑 Stop-Loss  : <b>{result['stop_loss']:.2f} TL</b> ({result['stop_pct']:+.1f}%)",
+        f"🎯 Hedef Fiyat: <b>{fmt_price(result['target'])}</b> ({result['target_pct']:+.1f}%)",
+        f"🛑 Stop-Loss  : <b>{fmt_price(result['stop_loss'])}</b> ({result['stop_pct']:+.1f}%)",
         f"⚖️ Risk/Ödül  : 1:{result['risk_reward']:.1f} {'✅ iyi' if result['risk_reward'] >= 1.5 else '⚠️ zayıf'}",
         "",
         "── 💼 Risk Yönetimi ──",
@@ -119,7 +127,7 @@ def format_watch_signal(result: dict) -> str:
     lines = [
         f"👀 <b>İZLE: {result['ticker']}</b>",
         "━━━━━━━━━━━━━━━━━━━━",
-        f"💰 Fiyat       : {result['price']:.2f} TL",
+        f"💰 Fiyat       : {fmt_price(result['price'])}",
         f"📊 Sinyal Puanı: {bar}",
         f"📉 NVI         : {'Birikim var ✅' if checks['nvi_bullish'] else 'Birikim yok ❌'}",
         f"📊 RSI         : {result['rsi']}",
@@ -135,7 +143,7 @@ def format_summary(results: list[dict], total_scanned: int) -> str:
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
 
     lines = [
-        "📊 <b>BORSA ANALİZ RAPORU</b>",
+        f"📊 <b>[{MARKET_LABEL}] BORSA ANALİZ RAPORU</b>",
         f"🕐 {now}",
         "━━━━━━━━━━━━━━━━━━━━",
         f"🔍 Taranan hisse    : {total_scanned}",
@@ -147,7 +155,7 @@ def format_summary(results: list[dict], total_scanned: int) -> str:
         lines.append("🔥 <b>En güçlü sinyaller:</b>")
         for r in buy_signals[:5]:
             bar = _score_bar(r["score"], r["max_score"])
-            lines.append(f"  • <b>{r['ticker']}</b> {bar} — {r['price']:.2f} TL")
+            lines.append(f"  • <b>{r['ticker']}</b> {bar} — {fmt_price(r['price'])}")
     lines += [
         "",
         "⚠️ <i>Bilgi amaçlıdır, yatırım tavsiyesi değildir.</i>",

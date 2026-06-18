@@ -8,6 +8,17 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
+# ─── Piyasa Seçimi ───────────────────────────────────────────────────────────
+# MARKET çevre değişkeniyle seçilir. Varsayılan "BIST" → mevcut BIST botu aynen
+# çalışır. "US" verilince ABD (S&P 500) moduna geçer.
+MARKET = os.getenv("MARKET", "BIST").upper()
+IS_US = MARKET == "US"
+
+# Market etiketi (Telegram başlıklarında) ve para birimi
+MARKET_LABEL = "ABD" if IS_US else "BIST"
+CURRENCY = "$" if IS_US else "TL"          # $ fiyatın ÖNÜNE, TL ARKASINA gelir
+CURRENCY_PREFIX = IS_US                      # True → "$297.53", False → "142.20 TL"
+
 # Teknik analiz parametreleri
 RSI_PERIOD = 14
 RSI_OVERSOLD = 38       # Bu seviyenin altı aşırı satım
@@ -39,9 +50,14 @@ SCAN_MODE = "hourly"
 # "fixed" modunda kullanılacak sabit saatler (24-saat formatı, Türkiye saati)
 SCAN_TIMES = ["10:00", "13:00", "16:30"]
 
-# Piyasa saatleri (BIST hisse seansı, Türkiye saati). Bu aralık dışında tarama yapılmaz.
-MARKET_OPEN_HOUR = 10    # 10:00
-MARKET_CLOSE_HOUR = 18   # 18:00
+# Piyasa saatleri (Türkiye saati). Bu aralık dışında tarama yapılmaz.
+# BIST: 10:00–18:00 | ABD borsası TR saatiyle ~16:30–23:00 (yaz saati)
+if IS_US:
+    MARKET_OPEN_HOUR = 16
+    MARKET_CLOSE_HOUR = 23
+else:
+    MARKET_OPEN_HOUR = 10
+    MARKET_CLOSE_HOUR = 18
 # Hafta sonu (Cumartesi/Pazar) borsa kapalı → tarama yapılmaz.
 SKIP_WEEKENDS = True
 
@@ -66,8 +82,12 @@ NEWS_MAX_HEADLINES = 10      # Hisse başına kaç son başlık değerlendirilsi
 # Güçlü olumsuz haber (bu skorun altı) varsa sinyale büyük uyarı eklenir
 NEWS_STRONG_NEGATIVE = -2
 
-# Türkçe finans haberlerinde OLUMLU sinyal veren kelimeler
-NEWS_POSITIVE_WORDS = [
+# Google News dil/bölge ayarı (haber sorgusu için)
+NEWS_LOCALE = "hl=en-US&gl=US&ceid=US:en" if IS_US else "hl=tr&gl=TR&ceid=TR:tr"
+NEWS_QUERY_SUFFIX = "stock" if IS_US else "hisse"
+
+# Türkçe finans haberlerinde OLUMLU/OLUMSUZ kelimeler
+_TR_POSITIVE = [
     "rekor", "kâr", "net kar", "kar artış", "kârında artış", "ihale", "ihale aldı",
     "anlaşma", "sözleşme", "temettü", "bedelsiz", "yükseliş", "ralli", "tavan",
     "alım", "büyüme", "yatırım", "ihracat", "zirve", "prim", "satın aldı",
@@ -75,11 +95,28 @@ NEWS_POSITIVE_WORDS = [
     "kapasite artış", "hedef fiyat yükselt", "tavsiye yükselt", "AL tavsiyesi",
     "ortaklık", "iş birliği", "işbirliği", "yeni proje", "lisans aldı",
 ]
-# Türkçe finans haberlerinde OLUMSUZ sinyal veren kelimeler
-NEWS_NEGATIVE_WORDS = [
+_TR_NEGATIVE = [
     "zarar", "düşüş", "ceza", "soruşturma", "dava", "iflas", "konkordato",
     "gözaltı", "taban", "kâr düşüş", "küçülme", "fesih", "iptal", "uyarı",
     "risk", "kaza", "grev", "istifa", "SPK cezası", "vergi cezası",
     "zayıf", "olumsuz", "satış baskısı", "ihale iptal", "haciz", "rüşvet",
     "yolsuzluk", "tedbir", "hisse satış", "zarar açıkladı", "tahsilat sorunu",
 ]
+# İngilizce (ABD) finans haberlerinde OLUMLU/OLUMSUZ kelimeler
+_US_POSITIVE = [
+    "beat", "beats", "earnings beat", "record", "surge", "soar", "rally",
+    "upgrade", "upgraded", "buy rating", "outperform", "price target raised",
+    "raises guidance", "strong", "growth", "profit", "all-time high", "jumps",
+    "tops estimates", "acquisition", "partnership", "approval", "approved",
+    "dividend", "buyback", "expansion", "breakthrough", "bullish",
+]
+_US_NEGATIVE = [
+    "miss", "misses", "earnings miss", "plunge", "plummet", "crash", "drop",
+    "downgrade", "downgraded", "sell rating", "underperform", "cuts guidance",
+    "lawsuit", "investigation", "probe", "fine", "recall", "bankruptcy",
+    "layoffs", "weak", "loss", "warning", "decline", "slump", "bearish",
+    "fraud", "delay", "halt", "sec charges", "antitrust",
+]
+
+NEWS_POSITIVE_WORDS = _US_POSITIVE if IS_US else _TR_POSITIVE
+NEWS_NEGATIVE_WORDS = _US_NEGATIVE if IS_US else _TR_NEGATIVE

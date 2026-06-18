@@ -15,10 +15,40 @@ import pandas as pd
 import time
 import logging
 
+from config import IS_US
+
 logger = logging.getLogger(__name__)
 
 # Borsada işlem gören tüm hisseleri canlı veren çalışan API (endeks filtresi yok).
 LISTED_API = "https://bigpara.hurriyet.com.tr/api/v1/hisse/list"
+
+# Popüler ~100 ABD hissesi (mega-cap + en likit). MARKET=US iken kullanılır.
+US_POPULAR = [
+    # Teknoloji
+    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "AMD", "INTC",
+    "CRM", "ORCL", "ADBE", "CSCO", "AVGO", "QCOM", "TXN", "IBM", "NOW",
+    "INTU", "AMAT", "MU", "LRCX", "PANW", "SNPS", "CDNS",
+    # İletişim / medya
+    "NFLX", "DIS", "CMCSA", "T", "VZ", "TMUS",
+    # Tüketici
+    "WMT", "COST", "HD", "NKE", "MCD", "SBUX", "TGT", "LOW", "BKNG",
+    "PG", "KO", "PEP", "PM", "MDLZ",
+    # Finans
+    "JPM", "BAC", "WFC", "GS", "MS", "C", "AXP", "V", "MA", "PYPL",
+    "BLK", "SCHW",
+    # Sağlık
+    "UNH", "JNJ", "LLY", "PFE", "MRK", "ABBV", "TMO", "ABT", "DHR",
+    "BMY", "AMGN", "GILD", "CVS",
+    # Enerji
+    "XOM", "CVX", "COP", "SLB",
+    # Sanayi
+    "BA", "CAT", "GE", "HON", "UPS", "RTX", "LMT", "DE", "MMM",
+    # Otomotiv
+    "F", "GM",
+    # Popüler / yüksek hacimli
+    "BRK-B", "UBER", "ABNB", "SHOP", "COIN", "PLTR", "SOFI", "SNAP",
+    "PINS", "ROKU",
+]
 
 # Güncel BIST 100 referans listesi. Endeks yılda ~2 kez revize edilir; gerekirse
 # buradan güncellenir. API ile kesiştirilerek geçersiz kodlar otomatik elenir.
@@ -71,11 +101,15 @@ def fetch_listed_tickers() -> set[str]:
     return set()
 
 
-def get_bist100_tickers() -> list[str]:
+def get_tickers() -> list[str]:
     """
-    BIST 100 referans listesini canlı API ile doğrular.
-    İşlem gören kodlar döner; API erişilemezse referans liste olduğu gibi kullanılır.
+    Taranacak hisse listesini market'e göre döner.
+    ABD: popüler ~100 hisse. BIST: referans liste, canlı API ile doğrulanmış.
     """
+    if IS_US:
+        logger.info(f"ABD modu: {len(US_POPULAR)} popüler hisse taranacak.")
+        return US_POPULAR
+
     listed = fetch_listed_tickers()
     if not listed:
         logger.info("Canlı doğrulama yapılamadı, referans BIST 100 listesi kullanılıyor.")
@@ -89,12 +123,19 @@ def get_bist100_tickers() -> list[str]:
     return valid
 
 
+# Geriye dönük uyumluluk (eski isimle çağıranlar için)
+get_bist100_tickers = get_tickers
+
+
 def download_stock_data(ticker: str, period: str = "1y", interval: str = "1d") -> pd.DataFrame | None:
     """
     Tek bir hisse için OHLCV verisi indirir.
-    Yahoo Finance'te Türk hisseleri '.IS' uzantısıyla aranır.
+    Türk hisseleri Yahoo'da '.IS' uzantısıyla aranır; ABD hisseleri doğrudan (AAPL).
     """
-    yf_ticker = ticker if ticker.endswith(".IS") else f"{ticker}.IS"
+    if IS_US:
+        yf_ticker = ticker  # ABD: AAPL, MSFT... uzantısız
+    else:
+        yf_ticker = ticker if ticker.endswith(".IS") else f"{ticker}.IS"
     try:
         df = yf.download(
             yf_ticker,
