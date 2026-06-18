@@ -43,7 +43,13 @@ jobs:
     - name: Sinyal Hafızasını Kaydet
       # sent_state.json değiştiyse repoya geri yaz ki bir sonraki çalıştırma
       # aynı sinyali tekrar göndermesin. [skip ci] sonsuz döngüyü önler.
+      # continue-on-error: bu adım kritik değil; başarısız olsa bile bot çalışır.
+      continue-on-error: true
       run: |
+        if [ ! -f borsa_analiz/sent_state.json ]; then
+          echo "Sinyal hafızası dosyası yok (bu taramada yeni sinyal olmamış), atlanıyor."
+          exit 0
+        fi
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add borsa_analiz/sent_state.json
@@ -51,5 +57,6 @@ jobs:
           echo "Hafızada değişiklik yok."
         else
           git commit -m "Sinyal hafızası güncellendi [skip ci]"
-          git push
+          git pull --rebase origin main || true
+          git push || echo "Push başarısız (repo yazma izni kapalı olabilir), atlandı."
         fi
