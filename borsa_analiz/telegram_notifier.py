@@ -9,17 +9,18 @@ from datetime import datetime
 from config import (
     TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
     MAX_POSITION_PCT, MAX_POSITIONS, MAX_SECTOR_PCT,
-    CURRENCY, CURRENCY_PREFIX, MARKET_LABEL,
+    get_profile,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def fmt_price(value: float) -> str:
+def fmt_price(value: float, market: str | None = None) -> str:
     """Fiyatı market para birimiyle biçimler: '$297.53' veya '142.20 TL'."""
-    if CURRENCY_PREFIX:
-        return f"{CURRENCY}{value:.2f}"
-    return f"{value:.2f} {CURRENCY}"
+    prof = get_profile(market)
+    if prof["currency_prefix"]:
+        return f"{prof['currency']}{value:.2f}"
+    return f"{value:.2f} {prof['currency']}"
 
 
 def send_message(text: str) -> bool:
@@ -52,19 +53,21 @@ def _check_icon(val: bool) -> str:
     return "✅" if val else "❌"
 
 
-def format_buy_signal(result: dict, reliability: dict | None = None, news: dict | None = None) -> str:
+def format_buy_signal(result: dict, reliability: dict | None = None, news: dict | None = None,
+                      market: str | None = None) -> str:
     checks = result["checks"]
     score = result["score"]
     max_score = result["max_score"]
     bar = _score_bar(score, max_score)
+    label = get_profile(market)["label"]
 
     strength = "GÜÇLİ" if score >= 5 else ("ORTA" if score >= 3 else "ZAYIF")
     emoji = "🔥" if score >= 5 else ("📈" if score >= 3 else "👀")
 
     lines = [
-        f"{emoji} <b>[{MARKET_LABEL}] ALIM SİNYALİ: {result['ticker']}</b>",
+        f"{emoji} <b>[{label}] ALIM SİNYALİ: {result['ticker']}</b>",
         "━━━━━━━━━━━━━━━━━━━━",
-        f"💰 Fiyat       : <b>{fmt_price(result['price'])}</b>",
+        f"💰 Fiyat       : <b>{fmt_price(result['price'], market)}</b>",
         f"📊 Güç         : {strength}",
         f"📊 Sinyal Puanı: {bar}",
     ]
@@ -102,8 +105,8 @@ def format_buy_signal(result: dict, reliability: dict | None = None, news: dict 
         f"📈 Kısa Vadeli Trend : {result['trend']}",
         "",
         "── 🎯 İşlem Planı (ATR bazlı) ──",
-        f"🎯 Hedef Fiyat: <b>{fmt_price(result['target'])}</b> ({result['target_pct']:+.1f}%)",
-        f"🛑 Stop-Loss  : <b>{fmt_price(result['stop_loss'])}</b> ({result['stop_pct']:+.1f}%)",
+        f"🎯 Hedef Fiyat: <b>{fmt_price(result['target'], market)}</b> ({result['target_pct']:+.1f}%)",
+        f"🛑 Stop-Loss  : <b>{fmt_price(result['stop_loss'], market)}</b> ({result['stop_pct']:+.1f}%)",
         f"⚖️ Risk/Ödül  : 1:{result['risk_reward']:.1f} {'✅ iyi' if result['risk_reward'] >= 1.5 else '⚠️ zayıf'}",
         "",
         "── 💼 Risk Yönetimi ──",
@@ -143,7 +146,7 @@ def format_summary(results: list[dict], total_scanned: int) -> str:
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
 
     lines = [
-        f"📊 <b>[{MARKET_LABEL}] BORSA ANALİZ RAPORU</b>",
+        f"📊 <b>[{get_profile()['label']}] BORSA ANALİZ RAPORU</b>",
         f"🕐 {now}",
         "━━━━━━━━━━━━━━━━━━━━",
         f"🔍 Taranan hisse    : {total_scanned}",

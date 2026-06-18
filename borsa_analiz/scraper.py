@@ -15,7 +15,7 @@ import pandas as pd
 import time
 import logging
 
-from config import IS_US
+from config import IS_US, get_profile
 
 logger = logging.getLogger(__name__)
 
@@ -127,15 +127,18 @@ def get_tickers() -> list[str]:
 get_bist100_tickers = get_tickers
 
 
-def download_stock_data(ticker: str, period: str = "1y", interval: str = "1d") -> pd.DataFrame | None:
+def download_stock_data(ticker: str, period: str = "1y", interval: str = "1d",
+                        market: str | None = None) -> pd.DataFrame | None:
     """
     Tek bir hisse için OHLCV verisi indirir.
     Türk hisseleri Yahoo'da '.IS' uzantısıyla aranır; ABD hisseleri doğrudan (AAPL).
+    market=None ise aktif MARKET kullanılır (otomatik botlar için).
     """
-    if IS_US:
-        yf_ticker = ticker  # ABD: AAPL, MSFT... uzantısız
+    suffix = get_profile(market)["suffix"]
+    if suffix and not ticker.endswith(suffix):
+        yf_ticker = f"{ticker}{suffix}"
     else:
-        yf_ticker = ticker if ticker.endswith(".IS") else f"{ticker}.IS"
+        yf_ticker = ticker
     try:
         df = yf.download(
             yf_ticker,

@@ -20,10 +20,7 @@ import re
 from xml.etree import ElementTree
 from datetime import datetime
 
-from config import (
-    NEWS_MAX_HEADLINES, NEWS_POSITIVE_WORDS, NEWS_NEGATIVE_WORDS,
-    NEWS_STRONG_NEGATIVE, NEWS_LOCALE, NEWS_QUERY_SUFFIX,
-)
+from config import NEWS_MAX_HEADLINES, NEWS_STRONG_NEGATIVE, get_profile
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +36,13 @@ _HEADERS = {
 _news_cache: dict[str, dict[str, dict]] = {}
 
 
-def fetch_headlines(ticker: str) -> list[str]:
+def fetch_headlines(ticker: str, market: str | None = None) -> list[str]:
     """Google News RSS'ten hisseye dair son haber başlıklarını çeker."""
-    query = f"{ticker} {NEWS_QUERY_SUFFIX}"
+    prof = get_profile(market)
+    query = f"{ticker} {prof['news_query']}"
     url = (
         f"https://news.google.com/rss/search?q={requests.utils.quote(query)}"
-        f"&{NEWS_LOCALE}"
+        f"&{prof['news_locale']}"
     )
     try:
         resp = requests.get(url, headers=_HEADERS, timeout=15)
@@ -64,8 +62,11 @@ def fetch_headlines(ticker: str) -> list[str]:
         return []
 
 
-def score_headlines(ticker: str, headlines: list[str]) -> dict:
+def score_headlines(ticker: str, headlines: list[str], market: str | None = None) -> dict:
     """Başlıkları anahtar kelimelere göre puanlar."""
+    prof = get_profile(market)
+    pos_words = prof["news_pos"]
+    neg_words = prof["news_neg"]
     score = 0
     pos_hits = 0
     neg_hits = 0
@@ -75,8 +76,8 @@ def score_headlines(ticker: str, headlines: list[str]) -> dict:
         low = title.lower()
         # Hisse kodunu metinden çıkar ki kod harfleri kelimeye karışmasın
         low_clean = low.replace(ticker.lower(), " ")
-        title_pos = any(w.lower() in low_clean for w in NEWS_POSITIVE_WORDS)
-        title_neg = any(w.lower() in low_clean for w in NEWS_NEGATIVE_WORDS)
+        title_pos = any(w.lower() in low_clean for w in pos_words)
+        title_neg = any(w.lower() in low_clean for w in neg_words)
         if title_pos and not title_neg:
             score += 1
             pos_hits += 1
@@ -109,20 +110,21 @@ def score_headlines(ticker: str, headlines: list[str]) -> dict:
     }
 
 
-def get_news_sentiment(ticker: str) -> dict:
+def get_news_sentiment(ticker: str, market: str | None = None) -> dict:
     """
     Bir hissenin haber duygusunu döner (canlı taramada kullanılır).
-    Sonuç o gün için cache'lenir.
+    Sonuç o gün için cache'lenir. market=None ise aktif MARKET kullanılır.
     """
     today = datetime.now().strftime("%Y-%m-%d")
+    cache_key = f"{market or ''}:{ticker}"
     for d in list(_news_cache.keys()):
         if d != today:
             del _news_cache[d]
     _news_cache.setdefault(today, {})
-    if ticker in _news_cache[today]:
-        return _news_cache[today][ticker]
+    if cache_key in _news_cache[today]:
+        return _news_cache[today][cache_key]
 
-    headlines = fetch_headlines(ticker)
+    headlines = fetch_headlines(ticker, market=market)
     if not headlines:
         result = {
             "score": 0, "label": "HABER YOK", "emoji": "📰⚪",
@@ -130,7 +132,7 @@ def get_news_sentiment(ticker: str) -> dict:
             "strong_negative": False, "examples": [],
         }
     else:
-        result = score_headlines(ticker, headlines)
+        result = score_headlines(ticker, headlines, market=market)
 
-    _news_cache[today][ticker] = result
+    _news_cache[today][cache_key] = result
     return result

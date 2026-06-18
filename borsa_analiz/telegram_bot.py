@@ -28,8 +28,9 @@ try:
 except Exception:
     pass
 
+import yfinance as yf
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, NEWS_ENABLED, DATA_PERIOD
-from scraper import download_stock_data
+from scraper import download_stock_data, US_POPULAR, BIST100_FALLBACK
 from analyzer import analyze_stock
 from backtest import get_reliability
 from news_analyzer import get_news_sentiment
@@ -52,21 +53,48 @@ YARDIM = (
 )
 
 
+def detect_market(code: str) -> str | None:
+    """
+    Hisse kodunun hangi markete ait olduğunu otomatik tespit eder.
+    Önce bilinen listelerden (hızlı), bulunamazsa yfinance ile dener.
+    """
+    code = code.upper().strip()
+    if code in US_POPULAR:
+        return "US"
+    if code in BIST100_FALLBACK:
+        return "BIST"
+    # Bilinmiyorsa canlı dene: önce BIST (.IS), sonra ABD (uzantısız)
+    try:
+        if not yf.download(f"{code}.IS", period="5d", progress=False, auto_adjust=True).empty:
+            return "BIST"
+    except Exception:
+        pass
+    try:
+        if not yf.download(code, period="5d", progress=False, auto_adjust=True).empty:
+            return "US"
+    except Exception:
+        pass
+    return None
+
+
 def analyze_one(code: str) -> str:
-    """Tek bir hisseyi analiz edip biçimlenmiş mesaj döner."""
+    """Tek bir hisseyi (market otomatik tespit edilerek) analiz eder."""
     code = code.upper().strip().lstrip("/").replace("ANALIZ", "").strip()
-    if not code or not code.isalnum():
-        return "❌ Geçerli bir hisse kodu yaz. Örnek: <code>THYAO</code>"
-    send_message(f"🔍 <b>{code}</b> analiz ediliyor, bir saniye...")
-    df = download_stock_data(code, period=DATA_PERIOD)
+    if not code or not code.replace("-", "").isalnum():
+        return "❌ Geçerli bir hisse kodu yaz. Örnek: <code>THYAO</code> veya <code>AAPL</code>"
+    market = detect_market(code)
+    if market is None:
+        return f"❌ <b>{code}</b>: BIST veya ABD borsasında bulunamadı. Kodu doğru yazdın mı?"
+    send_message(f"🔍 <b>[{'ABD' if market == 'US' else 'BIST'}] {code}</b> analiz ediliyor, bir saniye...")
+    df = download_stock_data(code, period=DATA_PERIOD, market=market)
     if df is None:
-        return f"❌ <b>{code}</b>: veri bulunamadı. Kodu doğru yazdın mı? (örn: THYAO, GARAN)"
+        return f"❌ <b>{code}</b>: veri bulunamadı."
     result = analyze_stock(code, df)
     if result is None:
         return f"❌ <b>{code}</b>: analiz edilemedi (yeterli veri yok)."
-    reliability = get_reliability(code)
-    news = get_news_sentiment(code) if NEWS_ENABLED else None
-    return format_buy_signal(result, reliability=reliability, news=news)
+    reliability = get_reliability(code, market=market)
+    news = get_news_sentiment(code, market=market) if NEWS_ENABLED else None
+    return format_buy_signal(result, reliability=reliability, news=news, market=market)
 
 
 def handle_command(text: str):

@@ -120,3 +120,26 @@ _US_NEGATIVE = [
 
 NEWS_POSITIVE_WORDS = _US_POSITIVE if IS_US else _TR_POSITIVE
 NEWS_NEGATIVE_WORDS = _US_NEGATIVE if IS_US else _TR_NEGATIVE
+
+
+# ─── Market Profili (merkezi) ────────────────────────────────────────────────
+def get_profile(market: str | None = None) -> dict:
+    """
+    Belirtilen market için tüm market-spesifik ayarları döner.
+    market=None ise aktif MARKET (env) kullanılır → otomatik botların davranışı
+    hiç değişmez. İnteraktif bot ise her sorguda doğru market'i geçirir.
+    """
+    m = (market or MARKET).upper()
+    is_us = m == "US"
+    return {
+        "market": m,
+        "is_us": is_us,
+        "label": "ABD" if is_us else "BIST",
+        "currency": "$" if is_us else "TL",
+        "currency_prefix": is_us,                 # True → "$297", False → "142 TL"
+        "suffix": "" if is_us else ".IS",         # yfinance ticker uzantısı
+        "news_locale": "hl=en-US&gl=US&ceid=US:en" if is_us else "hl=tr&gl=TR&ceid=TR:tr",
+        "news_query": "stock" if is_us else "hisse",
+        "news_pos": _US_POSITIVE if is_us else _TR_POSITIVE,
+        "news_neg": _US_NEGATIVE if is_us else _TR_NEGATIVE,
+    }
