@@ -1,0 +1,13 @@
+# Gizli bilgiler — ASLA GitHub'a yüklenmez!
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Log dosyaları
+*.log
+
+# Not: sent_state.json bilerek .gitignore'a EKLENMEDİ —
+# GitHub Actions onu commit edip çalıştırmalar arası saklıyor.

@@ -1,0 +1,49 @@
+name: Borsa Analiz Botu
+
+# Türkiye borsa saatlerinde (hafta içi 10:00–17:00) her saat başı çalışır.
+# GitHub Actions UTC kullanır: TR 10:00–17:00 = UTC 07:00–14:00.
+on:
+  schedule:
+    - cron: "0 7-14 * * 1-5"   # Pzt–Cuma, her saat başı (UTC 07–14 = TR 10–17)
+  workflow_dispatch:            # Elle de tetikleyebilmek için ("Run workflow" butonu)
+
+# State dosyasını (sent_state.json) repoya geri yazabilmek için yazma izni
+permissions:
+  contents: write
+
+jobs:
+  tarama:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Istanbul       # Tarih/saat damgaları Türkiye saatiyle olsun
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - name: Repoyu indir
+        uses: actions/checkout@v4
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Kütüphaneleri yükle
+        run: pip install -r requirements.txt
+
+      - name: Taramayı çalıştır
+        run: python main.py --once
+
+      - name: Sinyal hafızasını kaydet
+        # sent_state.json değiştiyse repoya geri yaz ki bir sonraki çalıştırma
+        # aynı sinyali tekrar göndermesin. [skip ci] ile sonsuz döngü önlenir.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sent_state.json
+          if git diff --staged --quiet; then
+            echo "Hafızada değişiklik yok."
+          else
+            git commit -m "Sinyal hafızası güncellendi [skip ci]"
+            git push
+          fi

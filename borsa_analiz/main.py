@@ -14,6 +14,8 @@ Kurulum:
 """
 
 import sys
+import os
+import json
 import logging
 import schedule
 import time
@@ -63,8 +65,29 @@ logger = logging.getLogger(__name__)
 
 
 # Aynı gün içinde aynı sinyali tekrar tekrar göndermemek için hafıza.
+# DOSYAYA yazılır; çünkü GitHub Actions her çalıştığında belleği sıfırlar.
+# Dosya GitHub'a geri commit edilerek çalıştırmalar arası korunur.
 # {tarih: {ticker: o gün gönderilen en yüksek skor}}
-_sent_today: dict[str, dict[str, int]] = {}
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sent_state.json")
+
+
+def _load_state() -> dict:
+    try:
+        with open(STATE_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+    except Exception as e:
+        logger.warning(f"Sinyal hafızası okunamadı: {e}")
+        return {}
+
+
+def _save_state(state: dict):
+    try:
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"Sinyal hafızası yazılamadı: {e}")
 
 
 def _should_alert(ticker: str, score: int) -> bool:
@@ -74,15 +97,14 @@ def _should_alert(ticker: str, score: int) -> bool:
     güçlenen (skoru yükselen) sinyaller bildirilir.
     """
     today = datetime.now().strftime("%Y-%m-%d")
-    _sent_today.setdefault(today, {})
-    # Eski günlerin kaydını temizle (hafıza şişmesin)
-    for d in list(_sent_today.keys()):
-        if d != today:
-            del _sent_today[d]
-    prev = _sent_today[today].get(ticker)
+    state = _load_state()
+    # Sadece bugünü tut (eski günleri at, dosya şişmesin)
+    today_state = state.get(today, {})
+    prev = today_state.get(ticker)
     if prev is not None and score <= prev:
         return False
-    _sent_today[today][ticker] = score
+    today_state[ticker] = score
+    _save_state({today: today_state})
     return True
 
 
