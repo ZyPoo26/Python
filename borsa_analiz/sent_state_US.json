@@ -5,7 +5,7 @@
     "AVGO": 4,
     "NKE": 4,
     "ABNB": 4,
-    "AAPL": 3,
+    "AAPL": 4,
     "NVDA": 3,
     "ADBE": 3,
     "CSCO": 3,
@@ -17,14 +17,17 @@
     "PM": 3,
     "GS": 3,
     "MS": 3,
-    "PYPL": 3,
+    "PYPL": 4,
     "BLK": 3,
     "UNH": 3,
     "MRK": 3,
-    "CAT": 3,
-    "GE": 3,
+    "CAT": 4,
+    "GE": 4,
     "DE": 3,
     "SHOP": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "META": 3,
+    "LOW": 3,
+    "MMM": 3
   }
 }
