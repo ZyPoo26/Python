@@ -13,7 +13,7 @@
     "MS": 3,
     "BLK": 3,
     "JNJ": 3,
-    "MRK": 3,
+    "MRK": 4,
     "CVS": 3,
     "COP": 3,
     "CAT": 3,
@@ -26,6 +26,11 @@
     "TMUS": 3,
     "GS": 3,
     "LLY": 3,
-    "SHOP": 3
+    "SHOP": 3,
+    "SNPS": 4,
+    "ADBE": 3,
+    "IBM": 3,
+    "AMAT": 3,
+    "LRCX": 3
   }
 }
