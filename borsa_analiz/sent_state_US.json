@@ -20,7 +20,7 @@
     "BLK": 3,
     "JNJ": 3,
     "CVS": 3,
-    "XOM": 3,
+    "XOM": 4,
     "CVX": 4,
     "COP": 4,
     "CAT": 3,
@@ -49,6 +49,8 @@
     "CSCO": 3,
     "CMCSA": 3,
     "V": 3,
-    "BRK-B": 3
+    "BRK-B": 3,
+    "SHOP": 4,
+    "SBUX": 3
   }
 }
