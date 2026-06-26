@@ -47,11 +47,14 @@
     "BRK-B": 3,
     "PLTR": 3,
     "CRM": 4,
-    "AMZN": 3,
+    "AMZN": 4,
     "META": 3,
-    "TSLA": 3,
+    "TSLA": 4,
     "LOW": 3,
     "MDLZ": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "GOOGL": 3,
+    "CDNS": 3,
+    "BLK": 3
   }
 }
