@@ -9,7 +9,7 @@
     "IBM": 4,
     "MU": 3,
     "LRCX": 3,
-    "CMCSA": 4,
+    "CMCSA": 5,
     "T": 4,
     "VZ": 4,
     "KO": 3,
@@ -34,7 +34,7 @@
     "MA": 4,
     "GILD": 4,
     "AAPL": 3,
-    "MSFT": 3,
+    "MSFT": 4,
     "ADBE": 3,
     "NOW": 3,
     "WMT": 3,
@@ -45,6 +45,13 @@
     "LMT": 3,
     "GM": 3,
     "BRK-B": 3,
-    "PLTR": 3
+    "PLTR": 3,
+    "CRM": 4,
+    "AMZN": 3,
+    "META": 3,
+    "TSLA": 3,
+    "LOW": 3,
+    "MDLZ": 3,
+    "SOFI": 3
   }
 }
