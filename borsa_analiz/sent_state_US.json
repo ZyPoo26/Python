@@ -32,7 +32,7 @@
     "COST": 4,
     "PEP": 4,
     "MA": 4,
-    "GILD": 4,
+    "GILD": 5,
     "AAPL": 3,
     "MSFT": 4,
     "ADBE": 3,
@@ -55,6 +55,7 @@
     "SOFI": 3,
     "GOOGL": 3,
     "CDNS": 3,
-    "BLK": 3
+    "BLK": 3,
+    "ABNB": 3
   }
 }
