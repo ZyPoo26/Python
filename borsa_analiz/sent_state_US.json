@@ -10,7 +10,7 @@
     "GILD": 4,
     "PLTR": 4,
     "AAPL": 3,
-    "AMZN": 3,
+    "AMZN": 4,
     "META": 3,
     "CSCO": 3,
     "AVGO": 3,
@@ -32,6 +32,10 @@
     "XOM": 3,
     "BA": 3,
     "RTX": 3,
-    "ABNB": 3
+    "ABNB": 3,
+    "LRCX": 3,
+    "MRK": 3,
+    "SHOP": 3,
+    "SOFI": 3
   }
 }
