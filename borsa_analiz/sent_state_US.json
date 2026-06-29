@@ -5,7 +5,7 @@
     "GOOGL": 4,
     "TSLA": 4,
     "ADBE": 4,
-    "CMCSA": 4,
+    "CMCSA": 5,
     "COST": 4,
     "GILD": 4,
     "PLTR": 4,
@@ -39,6 +39,8 @@
     "SOFI": 3,
     "HD": 3,
     "CAT": 3,
-    "VZ": 3
+    "VZ": 3,
+    "NVDA": 3,
+    "DE": 3
   }
 }
