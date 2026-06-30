@@ -40,6 +40,8 @@
     "CAT": 3,
     "PINS": 4,
     "INTC": 3,
-    "RTX": 3
+    "RTX": 3,
+    "MCD": 3,
+    "ROKU": 3
   }
 }
