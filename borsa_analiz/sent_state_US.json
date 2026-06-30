@@ -32,12 +32,14 @@
     "PLTR": 4,
     "SOFI": 3,
     "GS": 4,
-    "TSLA": 3,
+    "TSLA": 4,
     "QCOM": 3,
     "TXN": 3,
     "NOW": 3,
     "SCHW": 3,
     "CAT": 3,
-    "PINS": 3
+    "PINS": 4,
+    "INTC": 3,
+    "RTX": 3
   }
 }
