@@ -18,11 +18,11 @@
     "AMAT": 3,
     "LRCX": 3,
     "PANW": 3,
-    "CMCSA": 3,
+    "CMCSA": 4,
     "HD": 3,
     "MCD": 3,
     "PM": 3,
-    "GS": 3,
+    "GS": 4,
     "V": 3,
     "MA": 3,
     "SCHW": 3,
@@ -42,12 +42,17 @@
     "VZ": 3,
     "NKE": 3,
     "PEP": 3,
-    "MDLZ": 3,
+    "MDLZ": 4,
     "MS": 3,
     "BA": 3,
     "UPS": 3,
     "SHOP": 3,
     "COIN": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "QCOM": 3,
+    "TMUS": 3,
+    "PYPL": 3,
+    "LMT": 3,
+    "SNAP": 3
   }
 }
