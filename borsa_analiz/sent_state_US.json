@@ -40,10 +40,10 @@
     "IBM": 3,
     "DIS": 3,
     "VZ": 3,
-    "NKE": 3,
+    "NKE": 4,
     "PEP": 3,
     "MDLZ": 4,
-    "MS": 3,
+    "MS": 4,
     "BA": 3,
     "UPS": 3,
     "SHOP": 3,
@@ -53,6 +53,11 @@
     "TMUS": 3,
     "PYPL": 3,
     "LMT": 3,
-    "SNAP": 3
+    "SNAP": 3,
+    "JPM": 3,
+    "AXP": 3,
+    "BLK": 3,
+    "UNH": 3,
+    "GILD": 3
   }
 }
