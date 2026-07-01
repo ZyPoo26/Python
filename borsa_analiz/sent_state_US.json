@@ -56,8 +56,9 @@
     "SNAP": 3,
     "JPM": 3,
     "AXP": 3,
-    "BLK": 3,
+    "BLK": 4,
     "UNH": 3,
-    "GILD": 3
+    "GILD": 3,
+    "MU": 3
   }
 }
