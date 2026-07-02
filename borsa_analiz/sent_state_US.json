@@ -50,7 +50,17 @@
     "PFE": 3,
     "GILD": 3,
     "CVX": 3,
-    "BA": 3,
-    "UPS": 3
+    "BA": 4,
+    "UPS": 3,
+    "COST": 4,
+    "DIS": 3,
+    "MCD": 3,
+    "KO": 3,
+    "BAC": 3,
+    "C": 3,
+    "PYPL": 3,
+    "JNJ": 3,
+    "ABBV": 3,
+    "BRK-B": 3
   }
 }
