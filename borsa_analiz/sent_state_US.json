@@ -22,7 +22,7 @@
     "MU": 3,
     "PANW": 3,
     "CDNS": 3,
-    "TMUS": 3,
+    "TMUS": 4,
     "PEP": 3,
     "JPM": 3,
     "WFC": 3,
@@ -63,6 +63,8 @@
     "ABBV": 3,
     "BRK-B": 3,
     "BMY": 3,
-    "CAT": 3
+    "CAT": 3,
+    "HD": 3,
+    "MRK": 3
   }
 }
