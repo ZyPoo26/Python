@@ -16,13 +16,13 @@
     "TSLA": 3,
     "CRM": 4,
     "QCOM": 3,
-    "TXN": 3,
+    "TXN": 4,
     "IBM": 3,
     "MU": 3,
     "PANW": 3,
     "CDNS": 4,
     "DIS": 3,
-    "TMUS": 3,
+    "TMUS": 4,
     "WMT": 4,
     "KO": 3,
     "PEP": 3,
@@ -60,6 +60,7 @@
     "NVDA": 3,
     "MCD": 3,
     "UBER": 3,
-    "SHOP": 3
+    "SHOP": 3,
+    "UNH": 3
   }
 }
