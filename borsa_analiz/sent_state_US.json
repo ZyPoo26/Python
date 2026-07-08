@@ -20,8 +20,8 @@
     "MU": 3,
     "CDNS": 3,
     "NFLX": 3,
-    "T": 3,
-    "WMT": 3,
+    "T": 4,
+    "WMT": 4,
     "NKE": 3,
     "MCD": 3,
     "PG": 3,
@@ -36,12 +36,14 @@
     "SCHW": 3,
     "UNH": 3,
     "GILD": 3,
-    "COP": 3,
-    "SLB": 3,
+    "COP": 4,
+    "SLB": 4,
     "UPS": 3,
     "RTX": 3,
     "GM": 3,
     "PLTR": 3,
-    "PINS": 3
+    "PINS": 3,
+    "VZ": 4,
+    "PFE": 3
   }
 }
