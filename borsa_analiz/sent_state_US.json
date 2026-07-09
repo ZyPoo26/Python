@@ -31,13 +31,16 @@
     "CAT": 4,
     "INTC": 3,
     "AMAT": 4,
-    "SNPS": 3,
+    "SNPS": 4,
     "WFC": 3,
     "UPS": 3,
     "MMM": 3,
     "GM": 3,
     "SNAP": 3,
     "UNH": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "TXN": 3,
+    "TGT": 3,
+    "GS": 3
   }
 }
