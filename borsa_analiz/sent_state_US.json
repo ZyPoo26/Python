@@ -11,9 +11,9 @@
     "AMZN": 3,
     "ADBE": 3,
     "TXN": 3,
-    "INTU": 3,
+    "INTU": 4,
     "AMAT": 3,
-    "MU": 3,
+    "MU": 4,
     "LRCX": 3,
     "SNPS": 3,
     "CDNS": 3,
@@ -31,7 +31,7 @@
     "CAT": 3,
     "UPS": 3,
     "GM": 3,
-    "SNAP": 3,
+    "SNAP": 4,
     "GOOGL": 3,
     "AVGO": 3,
     "NFLX": 3,
@@ -43,6 +43,10 @@
     "BA": 3,
     "GE": 3,
     "PLTR": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "CRM": 3,
+    "DIS": 3,
+    "BRK-B": 3,
+    "COIN": 3
   }
 }
