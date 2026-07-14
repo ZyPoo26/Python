@@ -14,7 +14,7 @@
     "INTU": 4,
     "AMAT": 3,
     "MU": 4,
-    "LRCX": 3,
+    "LRCX": 4,
     "SNPS": 3,
     "CDNS": 3,
     "HD": 3,
@@ -47,6 +47,7 @@
     "CRM": 3,
     "DIS": 3,
     "BRK-B": 3,
-    "COIN": 3
+    "COIN": 3,
+    "GILD": 3
   }
 }
