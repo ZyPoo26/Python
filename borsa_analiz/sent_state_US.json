@@ -51,9 +51,12 @@
     "MA": 3,
     "ABT": 3,
     "UPS": 3,
-    "BRK-B": 3,
+    "BRK-B": 4,
     "INTU": 4,
     "MDLZ": 4,
-    "SHOP": 3
+    "SHOP": 3,
+    "MSFT": 3,
+    "IBM": 3,
+    "NKE": 3
   }
 }
