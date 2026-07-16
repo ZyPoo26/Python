@@ -23,7 +23,7 @@
     "GS": 3,
     "C": 4,
     "AXP": 3,
-    "PYPL": 3,
+    "PYPL": 4,
     "JNJ": 3,
     "PFE": 3,
     "BMY": 3,
@@ -56,7 +56,8 @@
     "MDLZ": 4,
     "SHOP": 3,
     "MSFT": 3,
-    "IBM": 3,
-    "NKE": 3
+    "IBM": 4,
+    "NKE": 3,
+    "LLY": 3
   }
 }
