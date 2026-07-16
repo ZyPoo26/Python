@@ -40,7 +40,7 @@
     "AAPL": 3,
     "AMZN": 3,
     "ADBE": 3,
-    "NFLX": 3,
+    "NFLX": 4,
     "DIS": 3,
     "CMCSA": 3,
     "TMUS": 3,
@@ -51,6 +51,9 @@
     "MA": 3,
     "ABT": 3,
     "UPS": 3,
-    "BRK-B": 3
+    "BRK-B": 3,
+    "INTU": 4,
+    "MDLZ": 4,
+    "SHOP": 3
   }
 }
