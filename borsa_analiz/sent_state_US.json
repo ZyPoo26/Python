@@ -1,37 +1,23 @@
 {
-  "2026-07-20": {
-    "GOOGL": 4,
+  "2026-07-21": {
     "AVGO": 4,
-    "AMZN": 3,
     "CSCO": 3,
-    "QCOM": 3,
     "TXN": 3,
-    "AMAT": 3,
     "MU": 3,
     "TMUS": 3,
+    "COST": 3,
     "HD": 3,
     "KO": 3,
     "PM": 3,
     "PYPL": 3,
-    "JNJ": 3,
-    "LLY": 3,
-    "BMY": 3,
     "XOM": 3,
     "CVX": 3,
     "COP": 3,
+    "BA": 3,
     "HON": 3,
     "DE": 3,
+    "MMM": 3,
     "GM": 3,
-    "BRK-B": 3,
-    "CRM": 3,
-    "PANW": 3,
-    "COST": 3,
-    "PG": 3,
-    "MRK": 3,
-    "SHOP": 3,
-    "COIN": 3,
-    "PLTR": 3,
-    "BA": 3,
-    "MMM": 3
+    "BRK-B": 3
   }
 }
