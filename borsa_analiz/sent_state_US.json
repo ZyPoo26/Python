@@ -27,11 +27,13 @@
     "GOOGL": 3,
     "INTC": 3,
     "QCOM": 3,
-    "CDNS": 3,
+    "CDNS": 4,
     "T": 3,
     "MS": 3,
     "JNJ": 3,
     "F": 3,
-    "PLTR": 3
+    "PLTR": 3,
+    "CVS": 3,
+    "SNAP": 3
   }
 }
