@@ -10,7 +10,7 @@
     "GOOGL": 3,
     "IBM": 3,
     "AMAT": 3,
-    "MU": 3,
+    "MU": 4,
     "LRCX": 3,
     "CDNS": 3,
     "MS": 3,
@@ -24,9 +24,18 @@
     "CAT": 3,
     "HON": 3,
     "UPS": 3,
-    "DE": 3,
+    "DE": 4,
     "MMM": 3,
     "GM": 3,
-    "BRK-B": 3
+    "BRK-B": 3,
+    "SLB": 4,
+    "INTC": 3,
+    "ORCL": 3,
+    "QCOM": 3,
+    "PG": 3,
+    "PM": 3,
+    "JPM": 3,
+    "BA": 3,
+    "GE": 3
   }
 }
