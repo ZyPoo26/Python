@@ -29,7 +29,7 @@
     "T": 3,
     "VZ": 3,
     "TMUS": 3,
-    "HD": 3,
+    "HD": 4,
     "SBUX": 3,
     "LOW": 3,
     "PM": 3,
@@ -40,6 +40,10 @@
     "MMM": 3,
     "GM": 3,
     "ABNB": 3,
-    "SHOP": 3
+    "SHOP": 3,
+    "AAPL": 3,
+    "ORCL": 3,
+    "NFLX": 3,
+    "BKNG": 3
   }
 }
