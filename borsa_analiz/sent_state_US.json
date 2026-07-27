@@ -11,7 +11,7 @@
     "SNAP": 4,
     "AAPL": 3,
     "GOOGL": 3,
-    "CRM": 3,
+    "CRM": 4,
     "ORCL": 3,
     "ADBE": 3,
     "IBM": 3,
@@ -49,6 +49,9 @@
     "MDLZ": 3,
     "AXP": 3,
     "JNJ": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "TGT": 3,
+    "GS": 3,
+    "PFE": 3
   }
 }
