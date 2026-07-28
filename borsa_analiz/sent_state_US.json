@@ -12,12 +12,12 @@
     "CSCO": 4,
     "IBM": 4,
     "NOW": 3,
-    "NFLX": 3,
+    "NFLX": 4,
     "DIS": 3,
     "CMCSA": 3,
     "T": 3,
     "VZ": 3,
-    "TMUS": 3,
+    "TMUS": 4,
     "COST": 3,
     "MCD": 3,
     "LOW": 3,
@@ -47,7 +47,7 @@
     "INTU": 3,
     "SBUX": 3,
     "TGT": 3,
-    "KO": 3,
+    "KO": 4,
     "MDLZ": 3,
     "MA": 3,
     "BLK": 3,
@@ -60,6 +60,7 @@
     "SHOP": 3,
     "WFC": 3,
     "PYPL": 3,
-    "UPS": 3
+    "UPS": 3,
+    "SOFI": 3
   }
 }
