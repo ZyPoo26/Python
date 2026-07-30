@@ -8,7 +8,7 @@
     "SBUX": 4,
     "BA": 4,
     "CRM": 3,
-    "ORCL": 3,
+    "ORCL": 4,
     "NOW": 3,
     "NFLX": 3,
     "DIS": 3,
@@ -28,6 +28,22 @@
     "F": 3,
     "GM": 3,
     "UBER": 3,
-    "SHOP": 3
+    "SHOP": 3,
+    "AMZN": 4,
+    "AVGO": 4,
+    "TXN": 4,
+    "AMAT": 4,
+    "MU": 4,
+    "LRCX": 4,
+    "PANW": 4,
+    "AMD": 3,
+    "INTC": 3,
+    "WFC": 3,
+    "GS": 3,
+    "MS": 3,
+    "C": 3,
+    "CVS": 3,
+    "CAT": 3,
+    "SOFI": 3
   }
 }
