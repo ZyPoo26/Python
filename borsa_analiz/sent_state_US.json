@@ -31,10 +31,15 @@
     "CDNS": 3,
     "UNH": 3,
     "TSLA": 3,
-    "IBM": 3,
+    "IBM": 4,
     "MCD": 3,
     "JNJ": 3,
     "CVX": 3,
-    "BA": 3
+    "BA": 4,
+    "SNPS": 4,
+    "PLTR": 4,
+    "MSFT": 3,
+    "BMY": 3,
+    "COP": 3
   }
 }
