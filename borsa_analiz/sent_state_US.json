@@ -10,11 +10,11 @@
     "CVS": 4,
     "CAT": 4,
     "UPS": 4,
-    "UBER": 4,
+    "UBER": 5,
     "PLTR": 4,
     "MSFT": 3,
     "GOOGL": 3,
-    "AMZN": 3,
+    "AMZN": 4,
     "META": 3,
     "TSLA": 3,
     "CRM": 3,
@@ -32,12 +32,13 @@
     "TGT": 3,
     "PG": 3,
     "WFC": 3,
-    "GS": 3,
+    "GS": 4,
     "BLK": 3,
     "BA": 3,
     "GE": 3,
     "BRK-B": 3,
     "SOFI": 3,
-    "INTC": 3
+    "INTC": 3,
+    "LOW": 3
   }
 }
