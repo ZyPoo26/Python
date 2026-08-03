@@ -18,7 +18,7 @@
     "META": 3,
     "TSLA": 3,
     "CRM": 3,
-    "ORCL": 3,
+    "ORCL": 4,
     "CSCO": 3,
     "MU": 3,
     "CDNS": 3,
@@ -37,6 +37,7 @@
     "BA": 3,
     "GE": 3,
     "BRK-B": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "INTC": 3
   }
 }
