@@ -31,7 +31,7 @@
     "AXP": 3,
     "BLK": 3,
     "SCHW": 3,
-    "UNH": 3,
+    "UNH": 4,
     "JNJ": 3,
     "PFE": 3,
     "GILD": 3,
@@ -51,8 +51,10 @@
     "PANW": 3,
     "JPM": 3,
     "WFC": 3,
-    "LLY": 3,
+    "LLY": 4,
     "ABBV": 3,
-    "DE": 3
+    "DE": 3,
+    "PM": 3,
+    "MMM": 3
   }
 }
