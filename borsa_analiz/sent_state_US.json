@@ -9,10 +9,10 @@
     "MSFT": 3,
     "AVGO": 3,
     "QCOM": 4,
-    "IBM": 3,
+    "IBM": 4,
     "AMAT": 3,
     "LRCX": 3,
-    "CDNS": 4,
+    "CDNS": 5,
     "CMCSA": 3,
     "COST": 3,
     "HD": 3,
@@ -45,6 +45,8 @@
     "DE": 3,
     "ABNB": 3,
     "COIN": 3,
-    "PLTR": 3
+    "PLTR": 3,
+    "INTC": 3,
+    "MCD": 3
   }
 }
