@@ -9,8 +9,8 @@
     "ABNB": 4,
     "META": 3,
     "IBM": 3,
-    "AMAT": 3,
-    "MU": 3,
+    "AMAT": 4,
+    "MU": 4,
     "PANW": 3,
     "CMCSA": 3,
     "T": 3,
@@ -23,6 +23,19 @@
     "COP": 3,
     "UPS": 3,
     "F": 3,
-    "UBER": 3
+    "UBER": 3,
+    "NVDA": 3,
+    "AMD": 3,
+    "INTC": 3,
+    "CSCO": 3,
+    "QCOM": 3,
+    "SNPS": 3,
+    "COST": 3,
+    "JPM": 3,
+    "BAC": 3,
+    "WFC": 3,
+    "MS": 3,
+    "UNH": 3,
+    "DE": 3
   }
 }
