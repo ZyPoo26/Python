@@ -33,12 +33,14 @@
     "COST": 4,
     "PG": 4,
     "AAPL": 3,
-    "GOOGL": 3,
+    "GOOGL": 4,
     "ORCL": 3,
     "CMCSA": 3,
     "V": 3,
     "MRK": 3,
     "CVX": 3,
-    "F": 3
+    "F": 3,
+    "AMD": 3,
+    "VZ": 3
   }
 }
