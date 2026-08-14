@@ -28,12 +28,12 @@
     "MRK": 3,
     "ABBV": 3,
     "GILD": 3,
-    "CVS": 3,
+    "CVS": 4,
     "CVX": 3,
     "HON": 3,
     "ROKU": 3,
     "TXN": 4,
-    "META": 3,
+    "META": 4,
     "AMD": 3,
     "QCOM": 3,
     "LRCX": 3,
@@ -45,6 +45,7 @@
     "COP": 3,
     "SLB": 3,
     "F": 3,
-    "SOFI": 3
+    "SOFI": 3,
+    "CDNS": 4
   }
 }
