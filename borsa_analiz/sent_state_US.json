@@ -4,11 +4,11 @@
     "AAPL": 4,
     "TXN": 4,
     "AMAT": 4,
-    "GS": 4,
+    "GS": 5,
     "CAT": 4,
     "GOOGL": 3,
     "TSLA": 3,
-    "CSCO": 3,
+    "CSCO": 4,
     "AVGO": 3,
     "MU": 3,
     "LRCX": 3,
@@ -21,6 +21,11 @@
     "UNH": 3,
     "MRK": 3,
     "CVX": 3,
-    "ROKU": 3
+    "ROKU": 3,
+    "INTC": 3,
+    "SNPS": 3,
+    "T": 3,
+    "ABBV": 3,
+    "GILD": 3
   }
 }
