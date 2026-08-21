@@ -14,9 +14,23 @@
     "XOM": 3,
     "CVX": 3,
     "COP": 3,
-    "UPS": 3,
+    "UPS": 4,
     "MMM": 3,
     "UBER": 3,
-    "COIN": 3
+    "COIN": 3,
+    "TSLA": 4,
+    "TMUS": 4,
+    "GS": 4,
+    "CAT": 4,
+    "META": 3,
+    "CSCO": 3,
+    "LRCX": 3,
+    "T": 3,
+    "COST": 3,
+    "TGT": 3,
+    "PG": 3,
+    "JPM": 3,
+    "WFC": 3,
+    "SOFI": 3
   }
 }
