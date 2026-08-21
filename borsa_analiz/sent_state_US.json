@@ -2,9 +2,9 @@
   "2026-08-21": {
     "AAPL": 4,
     "CRM": 3,
-    "AVGO": 3,
+    "AVGO": 4,
     "QCOM": 3,
-    "IBM": 3,
+    "IBM": 4,
     "MU": 3,
     "NKE": 3,
     "MCD": 3,
@@ -28,18 +28,21 @@
     "T": 3,
     "COST": 3,
     "TGT": 3,
-    "PG": 3,
+    "PG": 4,
     "JPM": 3,
     "WFC": 3,
     "SOFI": 3,
     "UNH": 4,
-    "GOOGL": 3,
+    "GOOGL": 4,
     "CMCSA": 3,
     "PM": 3,
     "MRK": 3,
     "ABT": 3,
     "GILD": 3,
     "BRK-B": 3,
-    "PINS": 3
+    "PINS": 3,
+    "VZ": 3,
+    "JNJ": 3,
+    "AMGN": 3
   }
 }
