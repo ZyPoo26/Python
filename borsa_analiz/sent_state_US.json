@@ -9,7 +9,7 @@
     "CAT": 4,
     "AAPL": 3,
     "GOOGL": 4,
-    "META": 3,
+    "META": 4,
     "CRM": 3,
     "CSCO": 3,
     "PANW": 3,
@@ -46,6 +46,7 @@
     "MRK": 3,
     "BA": 3,
     "SNPS": 5,
-    "BMY": 3
+    "BMY": 3,
+    "LRCX": 3
   }
 }
