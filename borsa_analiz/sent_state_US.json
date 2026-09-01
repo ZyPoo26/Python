@@ -1,31 +1,23 @@
 {
-  "2026-09-01": {
-    "AAPL": 4,
-    "MU": 4,
+  "2026-09-02": {
+    "UNH": 5,
     "TMUS": 4,
     "WMT": 4,
-    "COST": 4,
-    "JPM": 4,
     "BAC": 4,
+    "C": 4,
     "CVS": 4,
-    "GM": 4,
-    "META": 3,
+    "AAPL": 3,
     "CRM": 3,
-    "TXN": 3,
+    "CSCO": 3,
+    "AVGO": 3,
+    "COST": 3,
     "MCD": 3,
     "PG": 3,
-    "PEP": 3,
-    "WFC": 4,
-    "MS": 3,
+    "JPM": 3,
+    "WFC": 3,
+    "SCHW": 3,
     "CVX": 3,
-    "SLB": 3,
-    "BA": 3,
-    "GE": 3,
-    "DE": 3,
-    "BRK-B": 3,
-    "UBER": 3,
-    "UNH": 5,
-    "AVGO": 3,
-    "COP": 3
+    "COP": 3,
+    "DE": 3
   }
 }
