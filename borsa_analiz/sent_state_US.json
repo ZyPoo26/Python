@@ -19,6 +19,18 @@
     "CVX": 3,
     "COP": 3,
     "DE": 3,
-    "TXN": 3
+    "TXN": 3,
+    "META": 4,
+    "AXP": 4,
+    "BA": 4,
+    "GOOGL": 3,
+    "BKNG": 3,
+    "PM": 3,
+    "MDLZ": 3,
+    "PYPL": 3,
+    "JNJ": 3,
+    "BRK-B": 3,
+    "SHOP": 3,
+    "SOFI": 3
   }
 }
