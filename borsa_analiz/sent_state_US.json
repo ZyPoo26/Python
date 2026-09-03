@@ -26,7 +26,16 @@
     "BA": 3,
     "CAT": 3,
     "BRK-B": 3,
-    "SHOP": 3,
-    "SOFI": 3
+    "SHOP": 4,
+    "SOFI": 3,
+    "GOOGL": 4,
+    "INTC": 4,
+    "IBM": 4,
+    "AAPL": 3,
+    "META": 3,
+    "PANW": 3,
+    "GS": 3,
+    "MS": 3,
+    "UPS": 3
   }
 }
