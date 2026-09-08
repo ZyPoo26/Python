@@ -12,11 +12,11 @@
     "GE": 4,
     "SHOP": 4,
     "INTC": 3,
-    "CSCO": 3,
-    "AVGO": 3,
-    "AMAT": 3,
+    "CSCO": 4,
+    "AVGO": 4,
+    "AMAT": 4,
     "MU": 3,
-    "LRCX": 3,
+    "LRCX": 4,
     "HD": 3,
     "WFC": 3,
     "MS": 3,
@@ -26,6 +26,13 @@
     "CVS": 3,
     "XOM": 3,
     "SOFI": 3,
-    "ROKU": 3
+    "ROKU": 3,
+    "PM": 4,
+    "UNH": 4,
+    "META": 3,
+    "QCOM": 3,
+    "KO": 3,
+    "MDLZ": 3,
+    "LMT": 3
   }
 }
