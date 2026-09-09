@@ -3,7 +3,7 @@
     "CAT": 5,
     "CSCO": 4,
     "AVGO": 4,
-    "TXN": 4,
+    "TXN": 5,
     "PANW": 4,
     "UNH": 4,
     "BA": 4,
@@ -11,8 +11,8 @@
     "GOOGL": 3,
     "ORCL": 3,
     "QCOM": 3,
-    "IBM": 3,
-    "AMAT": 3,
+    "IBM": 4,
+    "AMAT": 4,
     "MU": 3,
     "LRCX": 3,
     "CMCSA": 3,
@@ -28,6 +28,9 @@
     "SCHW": 3,
     "XOM": 3,
     "LMT": 3,
-    "ROKU": 3
+    "ROKU": 3,
+    "PM": 3,
+    "WFC": 3,
+    "C": 3
   }
 }
