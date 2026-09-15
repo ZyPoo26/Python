@@ -22,14 +22,23 @@
     "GS": 3,
     "MS": 3,
     "MA": 3,
-    "SCHW": 3,
+    "SCHW": 4,
     "JNJ": 3,
     "MRK": 3,
     "DHR": 3,
-    "UPS": 3,
+    "UPS": 5,
     "GM": 3,
     "BRK-B": 3,
     "UBER": 3,
-    "PLTR": 3
+    "PLTR": 3,
+    "PANW": 3,
+    "KO": 3,
+    "PYPL": 3,
+    "GILD": 3,
+    "CVS": 3,
+    "XOM": 3,
+    "CVX": 3,
+    "COP": 3,
+    "LMT": 3
   }
 }
