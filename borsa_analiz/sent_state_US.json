@@ -13,17 +13,22 @@
     "TGT": 3,
     "PG": 3,
     "KO": 3,
-    "BLK": 3,
+    "BLK": 4,
     "MRK": 3,
     "TMO": 3,
     "COP": 3,
     "GE": 3,
     "HON": 3,
-    "UPS": 3,
+    "UPS": 4,
     "LMT": 3,
     "F": 3,
     "GM": 3,
     "SHOP": 3,
-    "COIN": 3
+    "COIN": 3,
+    "TXN": 4,
+    "AMAT": 4,
+    "LRCX": 4,
+    "TMUS": 3,
+    "MMM": 3
   }
 }
