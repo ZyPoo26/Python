@@ -37,7 +37,11 @@ from config import (
 
 logger = logging.getLogger(__name__)
 
-STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"news_state_{MARKET}.json")
+_DIR = os.path.dirname(os.path.abspath(__file__))
+STATE_FILE = os.path.join(_DIR, f"news_state_{MARKET}.json")       # gönderilen haberler
+FLAGS_FILE = os.path.join(_DIR, f"watch_flags_{MARKET}.json")      # taramanın öne çıkardığı hisseler
+# İki ayrı dosya: tarama iş akışı FLAGS_FILE'ı, haber iş akışı STATE_FILE'ı yazar.
+# GitHub Actions'ta ikisi de repoya commit edilmez, Actions cache'inde saklanır.
 
 _HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -91,15 +95,26 @@ _NOISE = re.compile(
 )
 
 
-def _load_state() -> dict:
+def _read_json(path: str) -> dict:
     try:
-        with open(STATE_FILE, encoding="utf-8") as f:
-            st = json.load(f)
+        with open(path, encoding="utf-8") as f:
+            return json.load(f) or {}
     except (FileNotFoundError, json.JSONDecodeError):
-        st = {}
+        return {}
+
+
+def _write_json(path: str, data: dict):
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=1)
+    except Exception as e:
+        logger.warning(f"{os.path.basename(path)} yazılamadı: {e}")
+
+
+def _load_state() -> dict:
+    st = _read_json(STATE_FILE)
     st.setdefault("seen", {})
     st.setdefault("last_sent", {})
-    st.setdefault("flagged", {})
     return st
 
 
@@ -107,23 +122,23 @@ def _save_state(st: dict):
     # Eski kayıtları temizle ki dosya şişmesin
     now = datetime.now()
     st["seen"] = {k: v for k, v in st["seen"].items() if now - datetime.fromisoformat(v) < timedelta(days=4)}
-    st["flagged"] = {k: v for k, v in st["flagged"].items()
-                     if now - datetime.fromisoformat(v["date"]) < timedelta(days=NEWS_WATCH_FLAG_DAYS)}
-    try:
-        with open(STATE_FILE, "w", encoding="utf-8") as f:
-            json.dump(st, f, ensure_ascii=False, indent=1)
-    except Exception as e:
-        logger.warning(f"Haber hafızası yazılamadı: {e}")
+    _write_json(STATE_FILE, st)
+
+
+def _load_flags() -> dict:
+    now = datetime.now()
+    return {k: v for k, v in _read_json(FLAGS_FILE).items()
+            if now - datetime.fromisoformat(v["date"]) < timedelta(days=NEWS_WATCH_FLAG_DAYS)}
 
 
 def flag_tickers(items: list[tuple[str, str]]):
     """Taramada öne çıkan hisseleri haber takibine ekler: [(kod, şirket adı)]."""
     if not items:
         return
-    st = _load_state()
+    flags = _load_flags()
     for ticker, name in items:
-        st["flagged"][ticker] = {"name": name, "date": datetime.now().isoformat(timespec="seconds")}
-    _save_state(st)
+        flags[ticker] = {"name": name, "date": datetime.now().isoformat(timespec="seconds")}
+    _write_json(FLAGS_FILE, flags)
 
 
 def _name_key(name: str) -> str:
@@ -137,7 +152,7 @@ def _name_key(name: str) -> str:
 def watch_list(market: str | None = None) -> dict[str, str]:
     prof = get_profile(market)
     base = dict(NEWS_WATCHLIST_US if prof["is_us"] else NEWS_WATCHLIST_BIST)
-    for t, v in _load_state()["flagged"].items():
+    for t, v in _load_flags().items():
         base.setdefault(t, _name_key(v.get("name") or t))
     return base
 

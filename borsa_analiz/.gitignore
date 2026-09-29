@@ -9,5 +9,8 @@ __pycache__/
 # Log dosyaları
 *.log
 
-# Not: sent_state.json bilerek .gitignore'a EKLENMEDİ —
-# GitHub Actions onu commit edip çalıştırmalar arası saklıyor.
+# Bot hafıza dosyaları — repoya commit EDİLMEZ.
+# GitHub Actions bunları cache'te saklar (her taramada commit atıp geçmişi doldurmasın diye).
+sent_state*.json
+news_state*.json
+watch_flags*.json

@@ -8,8 +8,9 @@ on:
     - cron: '*/20 5-20 * * *'
   workflow_dispatch:
 
+# Repoya artık bir şey yazılmıyor; hafıza Actions cache'inde tutuluyor.
 permissions:
-  contents: write
+  contents: read
 
 # Üst üste binen çalıştırmalar aynı haberi iki kez göndermesin
 concurrency:
@@ -40,6 +41,35 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r borsa_analiz/requirements.txt
 
+    # Gönderilmiş haberlerin hafızası (tekrar göndermemek için)
+    - name: Haber Hafızasını Geri Yükle
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          borsa_analiz/news_state_BIST.json
+          borsa_analiz/news_state_US.json
+        key: news-${{ github.run_id }}
+        restore-keys: news-
+
+    # Taramaların öne çıkardığı hisseler (sadece okunur, tarama iş akışları yazar)
+    - name: BIST Takip Listesini Al
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          borsa_analiz/sent_state_BIST.json
+          borsa_analiz/watch_flags_BIST.json
+        key: scan-BIST-none
+        restore-keys: scan-BIST-
+
+    - name: ABD Takip Listesini Al
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          borsa_analiz/sent_state_US.json
+          borsa_analiz/watch_flags_US.json
+        key: scan-US-none
+        restore-keys: scan-US-
+
     - name: BIST Haberlerini Kontrol Et
       continue-on-error: true
       run: |
@@ -54,19 +84,18 @@ jobs:
         cd borsa_analiz
         python main.py --news
 
-    - name: Haber Hafızasını Kaydet
-      continue-on-error: true
+    - name: Hafıza Dosyalarını Hazırla
+      if: always()
       run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        # Sadece var olan dosyaları ekle (git add, eksik dosyada hepsini reddeder)
         for f in borsa_analiz/news_state_BIST.json borsa_analiz/news_state_US.json; do
-          if [ -f "$f" ]; then git add "$f"; fi
+          [ -f "$f" ] || echo '{}' > "$f"
         done
-        if git diff --staged --quiet; then
-          echo "Hafızada değişiklik yok."
-        else
-          git commit -m "Haber hafızası güncellendi [skip ci]"
-          git pull --rebase origin main || true
-          git push || echo "Push başarısız, atlandı."
-        fi
+
+    - name: Haber Hafızasını Kaydet
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          borsa_analiz/news_state_BIST.json
+          borsa_analiz/news_state_US.json
+        key: news-${{ github.run_id }}

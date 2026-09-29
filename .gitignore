@@ -12,5 +12,8 @@ __pycache__/
 *.log
 **/*.log
 
-# Not: sent_state.json bilerek hariç tutulmadı —
-# GitHub Actions onu commit edip çalıştırmalar arası saklıyor.
+# Bot hafıza dosyaları — repoya commit EDİLMEZ.
+# GitHub Actions bunları cache'te saklar (her taramada commit atıp geçmişi doldurmasın diye).
+sent_state*.json
+news_state*.json
+watch_flags*.json
