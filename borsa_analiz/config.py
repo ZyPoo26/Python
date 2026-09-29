@@ -32,14 +32,20 @@ VOLUME_MA_PERIOD = 20
 
 # Kaç puanın üzerindeki hisseler Telegram'a gönderilsin (max 6)
 MIN_SCORE_TO_BUY_ALERT = 3
+
+# True ise: ana trend aşağıdaysa (fiyat MA200 altı) skor ne olursa olsun AL sinyali
+# üretilmez. 25 hisselik 3 yıllık testte (iz süren stop ile) False daha iyi sonuç
+# verdi; trend zaten 6 puandan biri olarak skora giriyor.
+REQUIRE_TREND_FOR_BUY = False
 MIN_SCORE_TO_WATCH_ALERT = 2   # 2 puan = "İzle" mesajı
 
 # True ise: her taramada kısa bir özet mesajı gönderilir (sinyal olmasa bile),
 # böylece botun çalıştığını görürsün. False ise: sadece yeni sinyal varsa mesaj gelir.
 ALWAYS_SEND_SUMMARY = True
 
-# Verinin kaç günlük periyotta çekilmesi
-DATA_PERIOD = "1y"
+# Verinin kaç günlük periyotta çekilmesi.
+# 2 yıl: MA200 ve NVI'nin 255 günlük EMA'sının oturması için 1 yıl yetmiyor.
+DATA_PERIOD = "2y"
 DATA_INTERVAL = "1d"
 
 # ─── Tarama Zamanlaması ─────────────────────────────────────────────────────
@@ -66,20 +72,79 @@ ATR_PERIOD = 14              # Volatilite (ATR) hesap periyodu
 ATR_STOP_MULT = 2.0          # Stop-loss = giriş - (2.0 x ATR)
 ATR_TARGET_MULT = 3.0        # Hedef    = giriş + (3.0 x ATR) → Risk/Ödül ≈ 1:1.5
 
+# Çıkış yöntemi:
+#  "trailing" → İz süren stop: fiyat yükseldikçe stop da yukarı kayar (zirveden
+#               ATR_TRAIL_MULT × ATR aşağıda). Sabit hedef yok, kâr koşmaya bırakılır.
+#  "fixed"    → Eski yöntem: sabit stop + sabit hedef.
+EXIT_MODE = "trailing"
+ATR_TRAIL_MULT = 3.0
+
 # Portföy kuralları (Telegram mesajında hatırlatma olarak gösterilir)
 MAX_POSITION_PCT = 5         # Tek hisseye portföyün en fazla %5'i
 MAX_POSITIONS = 6            # Aynı anda en fazla 6 farklı hissede dur
 MAX_SECTOR_PCT = 30          # Tek sektöre en fazla %30
 
 # ─── Backtest ────────────────────────────────────────────────────────────────
-BACKTEST_PERIOD = "2y"       # Backtest için kaç yıllık veri çekilsin
+BACKTEST_PERIOD = "3y"       # Backtest için kaç yıllık veri çekilsin (ilk ~1 yıl göstergelerin oturmasına gider)
 BACKTEST_MIN_SCORE = 3       # Backtest'te kaç puanda "AL" kabul edilsin
-BACKTEST_MAX_HOLD_DAYS = 30  # Stop/hedef değmezse en fazla kaç gün tut
+BACKTEST_MAX_HOLD_DAYS = 30  # "fixed" modda stop/hedef değmezse en fazla kaç gün tut
+BACKTEST_MAX_HOLD_DAYS_TRAIL = 120  # "trailing" modda en fazla kaç gün tut
 
 # İşlem maliyeti: her AL ve her SAT için tek yönlü oran (komisyon + spread/slippage).
 # BIST ~%0.2, ABD ~%0.05. Her işlem çiftinde (al+sat) iki kez uygulanır.
 # Backtest gerçekçi olsun diye getiriden düşülür.
 COMMISSION_PCT = 0.2 if IS_US is False else 0.05
+
+# ─── Temel Analiz (Bilanço) ─────────────────────────────────────────────────
+FUNDAMENTALS_ENABLED = True
+# Temel puanı (0-100) bu değerin altındaki şirketler için otomatik taramada
+# AL sinyali GÖNDERİLMEZ (sadece log'a yazılır). 0 yaparsan filtre kapanır.
+MIN_FUNDAMENTAL_SCORE_FOR_ALERT = 40
+
+# Türkiye yıllık TÜFE (%). TL raporlayan BIST şirketlerinde satış büyümesi ve
+# ROE bununla kıyaslanır (%30 büyüme, %30 enflasyonda reel büyüme DEĞİLDİR).
+# TÜİK her ay açıkladıkça güncelle.
+TR_INFLATION_PCT = float(os.getenv("TR_INFLATION_PCT", "30"))
+
+# ─── Yapay Zekâ Raporu (Claude) ──────────────────────────────────────────────
+# ANTHROPIC_API_KEY tanımlıysa /rapor komutu Claude ile detaylı şirket raporu
+# yazar (borç süreci, gelecek katalizörleri, senaryolar, yol haritası).
+# Tanımlı değilse bot yine çalışır; sadece kural tabanlı değerlendirme verir.
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
+AI_MODEL = "claude-opus-5-5"
+# True: rapor yazarken Claude internette güncel haber/KAP açıklaması arar (daha
+# isabetli, biraz daha maliyetli). False: sadece botun topladığı veriyi kullanır.
+AI_WEB_SEARCH = True
+AI_MAX_SEARCHES = 5
+# Otomatik taramada her AL sinyaline AI raporu eklensin mi? (maliyet → varsayılan kapalı)
+AI_REPORT_ON_SCAN = False
+
+# ─── Anlık Haber Bildirimi ──────────────────────────────────────────────────
+# Önemli şirketlerde ÖNEMLİ bir haber çıkınca Telegram'a bildirim atar.
+# "Önemli şirketler" = aşağıdaki takip listesi + botun son günlerde önerdiği
+# (karar TEMKİNLİ AL / AL ADAYI ya da analistlerin AL dediği) hisseler.
+NEWS_WATCH_ENABLED = True
+NEWS_WATCH_MIN_IMPORTANCE = 3     # Bu puanın altındaki haberler bildirilmez (rutin haber elenir)
+NEWS_WATCH_MAX_AGE_HOURS = 6      # Sadece son X saatte yayınlanmış haberler
+NEWS_WATCH_COOLDOWN_HOURS = 4     # Aynı şirket için en az X saat arayla bildirim…
+NEWS_WATCH_URGENT_IMPORTANCE = 6  # …ama bu puan ve üstü (iflas, soruşturma vb.) beklemeden gelir
+NEWS_WATCH_MAX_PER_RUN = 4        # Bir kontrolde en fazla X şirket için bildirim (spam önleme)
+NEWS_WATCH_FLAG_DAYS = 14         # Botun önerdiği hisse kaç gün takipte kalsın
+
+# Sabit takip listesi: kod → haberde aranacak şirket adı (küçük harf, ayırt edici kısım)
+NEWS_WATCHLIST_BIST = {
+    "THYAO": "türk hava yolları", "ASELS": "aselsan", "TUPRS": "tüpraş", "KCHOL": "koç holding",
+    "SAHOL": "sabancı", "GARAN": "garanti", "AKBNK": "akbank", "YKBNK": "yapı kredi",
+    "ISCTR": "iş bankası", "BIMAS": "bim", "EREGL": "ereğli", "FROTO": "ford otosan",
+    "TOASO": "tofaş", "PGSUS": "pegasus", "TCELL": "turkcell", "SISE": "şişecam",
+    "ENKAI": "enka", "KRDMD": "kardemir", "SASA": "sasa", "MGROS": "migros",
+}
+NEWS_WATCHLIST_US = {
+    "AAPL": "apple", "MSFT": "microsoft", "NVDA": "nvidia", "GOOGL": "alphabet", "AMZN": "amazon",
+    "META": "meta", "TSLA": "tesla", "AMD": "amd", "AVGO": "broadcom", "JPM": "jpmorgan",
+    "V": "visa", "LLY": "eli lilly", "UNH": "unitedhealth", "XOM": "exxon", "NFLX": "netflix",
+    "PLTR": "palantir", "BRK-B": "berkshire", "WMT": "walmart", "COST": "costco", "BA": "boeing",
+}
 
 # ─── Haber Analizi (Sentiment) ───────────────────────────────────────────────
 NEWS_ENABLED = True          # Haber analizi açık mı
@@ -95,9 +160,9 @@ NEWS_QUERY_SUFFIX = "stock" if IS_US else "hisse"
 _TR_POSITIVE = [
     "rekor", "kâr", "net kar", "kar artış", "kârında artış", "ihale", "ihale aldı",
     "anlaşma", "sözleşme", "temettü", "bedelsiz", "yükseliş", "ralli", "tavan",
-    "alım", "büyüme", "yatırım", "ihracat", "zirve", "prim", "satın aldı",
+    "büyüme", "yeni yatırım", "yatırım kararı", "ihracat", "zirve", "prim", "satın aldı",
     "kazandı", "beklentiyi aştı", "güçlü", "olumlu", "yeni fabrika",
-    "kapasite artış", "hedef fiyat yükselt", "tavsiye yükselt", "AL tavsiyesi",
+    "kapasite artış", "hedef fiyatını yükseltti", "hedef fiyat yükselt", "tavsiye yükselt", "AL tavsiyesi",
     "ortaklık", "iş birliği", "işbirliği", "yeni proje", "lisans aldı",
 ]
 _TR_NEGATIVE = [
@@ -106,6 +171,8 @@ _TR_NEGATIVE = [
     "risk", "kaza", "grev", "istifa", "SPK cezası", "vergi cezası",
     "zayıf", "olumsuz", "satış baskısı", "ihale iptal", "haciz", "rüşvet",
     "yolsuzluk", "tedbir", "hisse satış", "zarar açıkladı", "tahsilat sorunu",
+    "düşürdü", "hedef fiyatını düşür", "indirdi", "geriledi", "sert düş", "sat tavsiyesi",
+    "borç yapılandırma", "temerrüt", "kredi notu düş", "not indirimi",
 ]
 # İngilizce (ABD) finans haberlerinde OLUMLU/OLUMSUZ kelimeler
 _US_POSITIVE = [
@@ -147,4 +214,7 @@ def get_profile(market: str | None = None) -> dict:
         "news_query": "stock" if is_us else "hisse",
         "news_pos": _US_POSITIVE if is_us else _TR_POSITIVE,
         "news_neg": _US_NEGATIVE if is_us else _TR_NEGATIVE,
+        # Seans saatleri (Türkiye saati) — seans içi yarım gün tespiti için
+        "open_hour": 16 if is_us else 10,
+        "close_hour": 23 if is_us else 18,
     }

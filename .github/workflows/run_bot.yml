@@ -9,7 +9,7 @@ on:
     - cron: '15 7-14 * * 1-5'
   workflow_dispatch: # Web arayüzünden manuel "Run workflow" butonu
 
-# sent_state.json'u repoya geri yazabilmek için yazma izni
+# sent_state_BIST.json'u repoya geri yazabilmek için yazma izni
 permissions:
   contents: write
 
@@ -20,6 +20,8 @@ jobs:
       TZ: Europe/Istanbul   # Tarih/saat damgaları Türkiye saatiyle olsun
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      # Opsiyonel: AI raporu için (tanımlı değilse bot yine çalışır)
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
     - name: Repo Kodlarını Çek
@@ -43,18 +45,17 @@ jobs:
         python main.py --once
 
     - name: Sinyal Hafızasını Kaydet
-      # sent_state.json değiştiyse repoya geri yaz ki bir sonraki çalıştırma
+      # sent_state_BIST.json değiştiyse repoya geri yaz ki bir sonraki çalıştırma
       # aynı sinyali tekrar göndermesin. [skip ci] sonsuz döngüyü önler.
       # continue-on-error: bu adım kritik değil; başarısız olsa bile bot çalışır.
       continue-on-error: true
       run: |
-        if [ ! -f borsa_analiz/sent_state.json ]; then
-          echo "Sinyal hafızası dosyası yok (bu taramada yeni sinyal olmamış), atlanıyor."
-          exit 0
-        fi
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add borsa_analiz/sent_state.json
+        # Sadece var olan dosyaları ekle (git add, eksik dosyada hepsini reddeder)
+        for f in borsa_analiz/sent_state_BIST.json borsa_analiz/news_state_BIST.json; do
+          if [ -f "$f" ]; then git add "$f"; fi
+        done
         if git diff --staged --quiet; then
           echo "Hafızada değişiklik yok."
         else

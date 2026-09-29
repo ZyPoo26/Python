@@ -1,26 +1,28 @@
-name: ABD (S&P500) Otomatik Analiz Motoru
+name: Anlık Haber Takibi
 
 on:
   schedule:
-    # ABD borsası (NYSE/NASDAQ) seansı: ET 09:30–16:00.
-    # GitHub UTC kullanır. Yaz saati (EDT): UTC 13:30–20:00, kış (EST): 14:30–21:00.
-    # Her iki sezonu kapsamak için UTC 13:00–21:00 arası her saatin 15. dakikası.
-    - cron: '15 13-21 * * 1-5'
+    # Her gün 20 dakikada bir, TR 08:00–23:40 arası (UTC 05–20).
+    # Sadece ÖNEMLİ haberler bildirilir; tekrar ve spam news_state_*.json ile önlenir.
+    # Not: GitHub cron garantili değildir, yoğunlukta birkaç dakika gecikebilir.
+    - cron: '*/20 5-20 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
+# Üst üste binen çalıştırmalar aynı haberi iki kez göndermesin
+concurrency:
+  group: news-watch
+  cancel-in-progress: false
+
 jobs:
-  run-analysis-us:
+  news:
     runs-on: ubuntu-latest
     env:
-      MARKET: US                 # ← ABD moduna geçiren anahtar
       TZ: Europe/Istanbul
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      # Opsiyonel: AI raporu için (tanımlı değilse bot yine çalışır)
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
     - name: Repo Kodlarını Çek
@@ -38,24 +40,33 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r borsa_analiz/requirements.txt
 
-    - name: ABD Analizini Tetikle
+    - name: BIST Haberlerini Kontrol Et
+      continue-on-error: true
       run: |
         cd borsa_analiz
-        python main.py --once
+        python main.py --news
 
-    - name: Sinyal Hafızasını Kaydet
+    - name: ABD Haberlerini Kontrol Et
+      continue-on-error: true
+      env:
+        MARKET: US
+      run: |
+        cd borsa_analiz
+        python main.py --news
+
+    - name: Haber Hafızasını Kaydet
       continue-on-error: true
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         # Sadece var olan dosyaları ekle (git add, eksik dosyada hepsini reddeder)
-        for f in borsa_analiz/sent_state_US.json borsa_analiz/news_state_US.json; do
+        for f in borsa_analiz/news_state_BIST.json borsa_analiz/news_state_US.json; do
           if [ -f "$f" ]; then git add "$f"; fi
         done
         if git diff --staged --quiet; then
           echo "Hafızada değişiklik yok."
         else
-          git commit -m "ABD sinyal hafızası güncellendi [skip ci]"
+          git commit -m "Haber hafızası güncellendi [skip ci]"
           git pull --rebase origin main || true
-          git push || echo "Push başarısız (repo yazma izni kapalı olabilir), atlandı."
+          git push || echo "Push başarısız, atlandı."
         fi

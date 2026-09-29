@@ -20,8 +20,15 @@ GitHub Actions ile **7/24 otomatik** çalışır (bilgisayar kapalıyken bile), 
 
 ## ✨ Özellikler
 
-- **6 göstergeli skorlama:** NVI (akıllı para), RSI, MACD, Bollinger Bantları ve hacim analizi → her hisse 0–6 puan alır
-- **ATR bazlı işlem planı:** Her sinyalde stop-loss, hedef fiyat ve risk/ödül oranı
+- **Karar motoru (yol gösterici):** Teknik + temel + haber + backtest + genel piyasa yönü birleştirilip net karar verilir:
+  🟢 AL ADAYI · 🟡 TEMKİNLİ AL · 🟠 SPEKÜLATİF · 👀 İZLE · 🔴 UZAK DUR — ve adım adım **yol haritası** (giriş, pozisyon büyüklüğü, stop, takip edilecek olaylar, tezi bozan koşullar)
+- **Temel (bilanço) analiz:** 5 yıllık bilanço + son çeyrekler → borç yükü ve **borcun seyri**, likidite, faiz karşılama, kârlılık/marj trendi, büyüme (TL'de enflasyon düzeltmeli), serbest nakit akışı, sermaye artırımı/sulanma, F/K–PD/DD–FD/FAVÖK (döviz raporlayan şirketlerde kur düzeltmeli), analist hedefi, yaklaşan bilanço/temettü tarihleri
+- **Analist görüşü:** Aracı kurum konsensüsü (AL/TUT/SAT dağılımı, ortalama hedef ve potansiyel, son 3 aydaki değişim, not yükseltme/düşürme) + haberlerdeki "hedef fiyat / AL tavsiyesi" yorumları. Analistlerin de AL dediği sinyaller **ayrı grupta ve önce** gösterilir; analist kapsamı olmayan hisseler cezalandırılmaz, diğer kriterlerle aynı şekilde değerlendirilir
+- **Anlık önemli haber bildirimi:** Takip listesindeki büyük şirketler + botun son 14 günde öne çıkardığı hisseler için 20 dakikada bir haber kontrolü. Sadece önemli olaylar (iflas/konkordato, soruşturma, birleşme/satın alma, sermaye artırımı, temettü, büyük ihale, bilanço, kredi notu, yönetim değişikliği…) bildirilir; rutin "günlük teknik analiz" haberleri elenir, aynı haber iki kez gelmez, aynı şirket için en fazla 4 saatte bir bildirim gelir (çok kritik haberler hariç)
+- **Temel filtre:** Temeli zayıf şirketlerin teknik sinyalleri otomatik elenir (`MIN_FUNDAMENTAL_SCORE_FOR_ALERT`)
+- **AI şirket raporu (opsiyonel):** `/rapor THYAO` → Claude internette güncel haber/KAP açıklamalarını tarayıp borç süreci, katalizörler, riskler, senaryolar ve yol haritası yazar (`ANTHROPIC_API_KEY` gerekir)
+- **6 göstergeli teknik skor:** Ana trend (MA200), NVI (akıllı para), RSI, MACD, Bollinger ve hacim → 0–6 puan
+- **İz süren stop:** Sabit hedef yerine fiyat yükseldikçe yukarı kayan stop (backtest'te sabit hedefe göre belirgin daha iyi)
 - **Backtest motoru:** Stratejinin geçmiş performansı — isabet oranı, **komisyon dahil** getiri, **maksimum drawdown**, **Sharpe oranı**, al-tut karşılaştırması
 - **Güvenilirlik etiketi:** Her sinyalde 🟢 YÜKSEK / 🟡 ORTA / 🔴 DÜŞÜK (backtest'e dayalı)
 - **Haber analizi:** Google News'ten canlı başlık çekip duygu (sentiment) puanlaması (Türkçe + İngilizce)
@@ -52,6 +59,9 @@ cp borsa_analiz/.env.example borsa_analiz/.env
 ```bash
 cd borsa_analiz
 
+# Önemli şirket haberlerini şimdi kontrol et (normalde GitHub Actions 20 dk'da bir yapar)
+python main.py --news
+
 # Telegram bağlantısını test et
 python main.py --test
 
@@ -78,8 +88,10 @@ python telegram_bot.py
 
 | Yazdığın | Sonuç |
 |---|---|
-| `THYAO` veya `AAPL` | Hissenin anlık tam analizi |
+| `THYAO` veya `AAPL` | Karar + şirket sağlığı + teknik + yol haritası |
 | `/analiz GARAN` | Aynı şey |
+| `/temel ASELS` | Sadece bilanço / borç / kârlılık analizi |
+| `/rapor THYAO` | Tam analiz + yapay zekâ detaylı şirket raporu |
 | `/tara` | Tüm listeyi tara |
 | `/durum` | Bot aktif mi? |
 | `/yardim` | Komut listesi |

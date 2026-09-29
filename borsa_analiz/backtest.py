@@ -17,9 +17,10 @@ import pandas as pd
 from config import (
     BACKTEST_PERIOD, BACKTEST_MIN_SCORE, BACKTEST_MAX_HOLD_DAYS,
     NVI_EMA_PERIOD, COMMISSION_PCT,
+    EXIT_MODE, ATR_TRAIL_MULT, BACKTEST_MAX_HOLD_DAYS_TRAIL,
 )
 from scraper import download_stock_data
-from analyzer import analyze_stock
+from analyzer import analyze_stock, is_buy_signal
 
 logger = logging.getLogger(__name__)
 
@@ -39,38 +40,47 @@ def backtest_stock(ticker: str, df: pd.DataFrame) -> dict | None:
     while i < n - 1:
         window = df.iloc[: i + 1]
         result = analyze_stock(ticker, window)
-        if result is None or result["score"] < BACKTEST_MIN_SCORE:
+        if result is None or not is_buy_signal(result, BACKTEST_MIN_SCORE):
             i += 1
             continue
 
-        # ── Pozisyon aç: ertesi günün açılışına en yakın, o günün kapanışından gir ──
+        # ── Pozisyon aç: sinyal gününün kapanışından gir ──
         entry_price = result["price"]
         stop = result["stop_loss"]
         target = result["target"]
+        atr = result["atr"]
+        trailing = EXIT_MODE == "trailing"
+        max_hold = BACKTEST_MAX_HOLD_DAYS_TRAIL if trailing else BACKTEST_MAX_HOLD_DAYS
         entry_date = df.index[i]
         exit_price = None
         exit_reason = None
         exit_date = None
+        highest = entry_price
 
-        # Sonraki günlerde stop/hedef kontrolü
-        for j in range(i + 1, min(i + 1 + BACKTEST_MAX_HOLD_DAYS, n)):
+        j = i
+        for j in range(i + 1, min(i + 1 + max_hold, n)):
+            day_open = float(df["Open"].iloc[j])
             day_low = float(df["Low"].iloc[j])
             day_high = float(df["High"].iloc[j])
-            # Konservatif: aynı gün hem stop hem hedef değerse stop önce varsayılır
+            # Konservatif: aynı gün hem stop hem hedef değerse stop önce varsayılır.
+            # Boşluklu (gap) açılışta stop fiyatından değil, açılıştan çıkılır.
             if day_low <= stop:
-                exit_price = stop
-                exit_reason = "STOP"
+                exit_price = min(stop, day_open)
+                exit_reason = "STOP" if stop < entry_price else "IZ-STOP"
                 exit_date = df.index[j]
                 break
-            if day_high >= target:
-                exit_price = target
+            if not trailing and day_high >= target:
+                exit_price = max(target, day_open)
                 exit_reason = "HEDEF"
                 exit_date = df.index[j]
                 break
-        else:
-            j = min(i + BACKTEST_MAX_HOLD_DAYS, n - 1)
+            if trailing:
+                # İz süren stop: görülen en yüksek kapanıştan ATR_TRAIL_MULT × ATR aşağıda,
+                # sadece yukarı kayar. Kazananların koşmasına izin verir.
+                highest = max(highest, float(df["Close"].iloc[j]))
+                stop = max(stop, highest - ATR_TRAIL_MULT * atr)
 
-        if exit_price is None:  # Süre doldu, kapanıştan çık
+        if exit_price is None:  # Süre doldu (veya veri bitti), kapanıştan çık
             exit_price = float(df["Close"].iloc[j])
             exit_reason = "SURE"
             exit_date = df.index[j]

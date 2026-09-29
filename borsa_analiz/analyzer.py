@@ -2,13 +2,17 @@
 Teknik analiz motoru.
 
 Göstergeler:
-  NVI  – Negative Volume Index: düşük hacimli günlerde akıllı para fiyatı iter.
-         NVI > EMA(255) → kurumsal alım var → güçlü yükseliş sinyali.
-  RSI  – Aşırı satım bölgesi çıkışı → potansiyel toparlanma.
-  MACD – Kesişim yönü (hızlı > yavaş = yükseliş).
-  BB   – Fiyat alt banda yakın → dip noktası.
-  VOL  – Ani hacim artışı + fiyat yükseliş = birikim sinyali.
-  MOM  – 10 günlük momentum pozitif mi?
+  TREND – Fiyat 200 günlük ortalamanın üstünde VE MA50 > MA200 → ana trend yukarı.
+          Düşen trendde "dip" almak stratejinin en büyük kayıp kaynağıydı.
+  NVI   – Negative Volume Index: düşük hacimli günlerde akıllı para fiyatı iter.
+          NVI > EMA(255) → kurumsal alım var.
+  RSI   – Aşırı satımdan çıkış → potansiyel toparlanma.
+  MACD  – Kesişim yönü (hızlı > yavaş = yükseliş).
+  BB    – Fiyat alt banda yakın → geri çekilme / dip bölgesi.
+  VOL   – Ani hacim artışı + fiyat yükselişi = birikim sinyali.
+
+Hacim kullanan göstergeler (NVI, VOL) yalnızca TAMAMLANMIŞ günlerle hesaplanır:
+seans içindeki yarım günün hacmi dünün tam hacmiyle kıyaslanırsa sonuç bozulur.
 """
 
 import numpy as np
@@ -18,7 +22,8 @@ from config import (
     RSI_PERIOD, RSI_OVERSOLD, RSI_OVERBOUGHT,
     NVI_EMA_PERIOD, MACD_FAST, MACD_SLOW, MACD_SIGNAL,
     BB_PERIOD, VOLUME_MA_PERIOD,
-    ATR_PERIOD, ATR_STOP_MULT, ATR_TARGET_MULT
+    ATR_PERIOD, ATR_STOP_MULT, ATR_TARGET_MULT,
+    MIN_SCORE_TO_BUY_ALERT, REQUIRE_TREND_FOR_BUY,
 )
 
 logger = logging.getLogger(__name__)
@@ -107,20 +112,31 @@ def calc_stop_target(price: float, atr: float) -> dict:
 
 # ─── Ana Analiz Fonksiyonu ─────────────────────────────────────────────────────
 
-def analyze_stock(ticker: str, df: pd.DataFrame) -> dict | None:
+def analyze_stock(ticker: str, df: pd.DataFrame, partial_last: bool = False) -> dict | None:
     """
     Bir hisseyi tüm göstergelerle analiz eder; puan ve sinyal sözlüğü döner.
     Puan 0-6 arası: her gösterge için 1 puan.
+    partial_last=True: son satır henüz kapanmamış (seans içi) gündür; hacim bazlı
+    göstergeler o satırı dışarıda bırakarak hesaplanır.
     """
     try:
         close = df["Close"].squeeze()
-        volume = df["Volume"].squeeze()
+        vdf = df.iloc[:-1] if partial_last and len(df) > 1 else df   # hacim için tamamlanmış günler
+        vclose = vdf["Close"].squeeze()
+        volume = vdf["Volume"].squeeze()
+
+        # ── Ana Trend (MA200) ──
+        ma200 = close.rolling(200).mean()
+        ma50 = close.rolling(50).mean()
+        if pd.notna(ma200.iloc[-1]):
+            trend_ok = bool(close.iloc[-1] > ma200.iloc[-1] and ma50.iloc[-1] > ma200.iloc[-1])
+        else:
+            trend_ok = False   # 200 günlük veri yoksa trend teyidi yok
 
         # ── NVI ──
-        nvi = calc_nvi(df)
+        nvi = calc_nvi(vdf)
         nvi_ema = nvi.ewm(span=NVI_EMA_PERIOD, adjust=False).mean()
         nvi_bullish = bool(nvi.iloc[-1] > nvi_ema.iloc[-1])
-        nvi_rising = bool(nvi.iloc[-1] > nvi.iloc[-5])  # son 5 günde NVI yükselde mi
 
         # ── RSI ──
         rsi = calc_rsi(close, RSI_PERIOD)
@@ -148,7 +164,7 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict | None:
         # ── Hacim Analizi ──
         vol_ma = volume.rolling(VOLUME_MA_PERIOD).mean()
         vol_ratio = float(volume.iloc[-1]) / float(vol_ma.iloc[-1]) if float(vol_ma.iloc[-1]) > 0 else 1.0
-        price_change = (float(close.iloc[-1]) - float(close.iloc[-2])) / float(close.iloc[-2])
+        price_change = (float(vclose.iloc[-1]) - float(vclose.iloc[-2])) / float(vclose.iloc[-2])
         # Hacim arttı + fiyat yükseldi = birikim
         vol_signal = vol_ratio > 1.5 and price_change > 0
 
@@ -158,8 +174,8 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict | None:
 
         # ── Skor Hesaplama ──
         checks = {
+            "trend_ok": trend_ok,              # Ana trend yukarı (MA200 üstü)
             "nvi_bullish": nvi_bullish,       # NVI > EMA → akıllı para alıyor
-            "nvi_rising": nvi_rising,          # NVI son 5 günde artıyor
             "rsi_signal": rsi_signal,          # RSI ideal bölge
             "macd_signal": macd_cross_up or (macd_positive and float(histogram.iloc[-1]) > float(histogram.iloc[-2])),
             "bb_signal": bb_signal,            # Fiyat alt bant yakını
@@ -167,8 +183,7 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict | None:
         }
         score = sum(checks.values())
 
-        # ── Trend ──
-        ma50 = close.rolling(50).mean()
+        # ── Kısa vadeli trend ──
         ma20 = close.rolling(20).mean()
         trend = "YUKARI" if float(ma20.iloc[-1]) > float(ma50.iloc[-1]) else "ASAGI"
 
@@ -189,6 +204,12 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict | None:
             "vol_ratio": round(vol_ratio, 2),
             "momentum_10d": round(momentum, 2),
             "trend": trend,
+            "trend_ok": trend_ok,
+            "ma20": round(float(ma20.iloc[-1]), 2),
+            "ma50": round(float(ma50.iloc[-1]), 2),
+            "ma200": round(float(ma200.iloc[-1]), 2) if pd.notna(ma200.iloc[-1]) else None,
+            "high_52w": round(float(close.iloc[-252:].max()), 2),
+            "low_52w": round(float(close.iloc[-252:].min()), 2),
             "nvi_bullish": nvi_bullish,
             "atr": round(atr_val, 2),
             **risk_levels,
@@ -198,11 +219,19 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict | None:
         return None
 
 
+def is_buy_signal(result: dict, min_score: int = MIN_SCORE_TO_BUY_ALERT) -> bool:
+    """Canlı tarama ve backtest'in ortak AL tanımı: yeterli skor + (istenirse) yukarı trend."""
+    if result["score"] < min_score:
+        return False
+    return result.get("trend_ok", False) or not REQUIRE_TREND_FOR_BUY
+
+
 def analyze_all(stock_data: dict[str, pd.DataFrame]) -> list[dict]:
     """Tüm hisse verilerini analiz edip sonuçları skor sırasına göre döner."""
+    from scraper import last_bar_is_partial
     results = []
     for ticker, df in stock_data.items():
-        result = analyze_stock(ticker, df)
+        result = analyze_stock(ticker, df, partial_last=last_bar_is_partial(df))
         if result:
             results.append(result)
     results.sort(key=lambda x: x["score"], reverse=True)

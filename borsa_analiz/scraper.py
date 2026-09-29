@@ -158,6 +158,21 @@ def download_stock_data(ticker: str, period: str = "1y", interval: str = "1d",
         return None
 
 
+def last_bar_is_partial(df: pd.DataFrame, market: str | None = None) -> bool:
+    """
+    Son günlük mum henüz kapanmamış mı? (seans içi tarama)
+    Seans sürerken yfinance bugünün mumunu o ana kadarki hacimle verir; bu yarım
+    hacmi dünün tam hacmiyle kıyaslamak NVI ve hacim sinyalini bozar.
+    """
+    from datetime import datetime
+    prof = get_profile(market)
+    now = datetime.now()
+    if df is None or df.empty or now.weekday() >= 5:
+        return False
+    last = pd.Timestamp(df.index[-1]).date()
+    return last == now.date() and prof["open_hour"] <= now.hour < prof["close_hour"]
+
+
 def download_all(tickers: list[str], period: str = "1y", interval: str = "1d", delay: float = 0.3) -> dict[str, pd.DataFrame]:
     """
     Tüm hisseler için veri indirir.

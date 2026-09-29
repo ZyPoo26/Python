@@ -5,6 +5,7 @@ Kullanım:
   python main.py          → Sürekli çalışır, SCAN_TIMES saatlerinde tarama yapar
   python main.py --once   → Tek seferlik tarama yapar ve çıkar
   python main.py --test   → Telegram bağlantısını test eder
+  python main.py --news   → Önemli şirketlerin son haberlerini kontrol eder, önemliyse bildirir
 
 Kurulum:
   1. pip install -r requirements.txt
@@ -40,16 +41,18 @@ from config import (
     DATA_PERIOD,
     DATA_INTERVAL,
 )
-from config import NEWS_ENABLED, ALWAYS_SEND_SUMMARY, MARKET
+from config import (
+    ALWAYS_SEND_SUMMARY, MARKET, MIN_FUNDAMENTAL_SCORE_FOR_ALERT, AI_REPORT_ON_SCAN,
+)
 from scraper import get_bist100_tickers, download_all
-from analyzer import analyze_all
-from backtest import get_reliability
-from news_analyzer import get_news_sentiment
+from analyzer import analyze_all, is_buy_signal
+from advisor import full_analysis, market_regime
+from fundamentals import get_fundamentals
 from telegram_notifier import (
     send_message,
     format_buy_signal,
-    format_watch_signal,
     format_summary,
+    _esc,
 )
 
 logging.basicConfig(
@@ -91,11 +94,13 @@ def _save_state(state: dict):
         logger.warning(f"Sinyal hafızası yazılamadı: {e}")
 
 
-def _should_alert(ticker: str, score: int) -> bool:
+def _should_alert(ticker: str, score: int, commit: bool = True) -> bool:
     """
     Bu hisse için bugün daha önce bildirim gittiyse VE skor artmadıysa False döner.
     Böylece saat başı tarama aynı sinyali spam yapmaz; sadece yeni veya
     güçlenen (skoru yükselen) sinyaller bildirilir.
+    commit=False: sadece kontrol eder, hafızaya yazmaz (mesaj gerçekten
+    gönderildikten sonra commit=True ile yazılır; gönderim başarısızsa tekrar denenir).
     """
     today = datetime.now().strftime("%Y-%m-%d")
     state = _load_state()
@@ -104,6 +109,8 @@ def _should_alert(ticker: str, score: int) -> bool:
     prev = today_state.get(ticker)
     if prev is not None and score <= prev:
         return False
+    if not commit:
+        return True
     today_state[ticker] = score
     _save_state({today: today_state})
     return True
@@ -135,42 +142,80 @@ def run_scan(force: bool = False):
     # 2. Veri indir
     stock_data = download_all(tickers, period=DATA_PERIOD, interval=DATA_INTERVAL)
 
-    # 3. Analiz et
+    # 3. Teknik analiz (seans içindeysek bugünün yarım mumu hacim hesabına katılmaz)
     results = analyze_all(stock_data)
     logger.info(f"Analiz tamamlandı. {len(results)} hisse analiz edildi.")
 
-    # 4. Alım sinyali olan hisseleri belirle
-    buy_signals = [r for r in results if r["score"] >= MIN_SCORE_TO_BUY_ALERT]
+    # 4. Teknik alım sinyali olan hisseler
+    buy_signals = [r for r in results if is_buy_signal(r)]
     watch_signals = [r for r in results if r["score"] == MIN_SCORE_TO_WATCH_ALERT]
 
-    # 5. Yalnızca YENİ veya skoru YÜKSELEN sinyalleri gönder (saatlik spam'i önler)
-    new_signals = [r for r in buy_signals if _should_alert(r["ticker"], r["score"])]
+    # 5. Yalnızca YENİ veya skoru YÜKSELEN sinyaller için derin analiz
+    #    (temel analiz + haber + backtest + karar). Temeli zayıf olanlar elenir.
+    alerts = []
+    filtered = []
+    for r in buy_signals:
+        if not _should_alert(r["ticker"], r["score"], commit=False):
+            continue
+        full = full_analysis(r["ticker"], df=stock_data[r["ticker"]])
+        if full is None:
+            continue
+        fund = full["fund"]
+        if fund and fund["total"] < MIN_FUNDAMENTAL_SCORE_FOR_ALERT:
+            why = fund["cons"][0] if fund["cons"] else f"temel puan {fund['total']}/100"
+            filtered.append((r["ticker"], why))
+            logger.info(f"  {r['ticker']} elendi: temel puan {fund['total']} ({why})")
+            _should_alert(r["ticker"], r["score"])   # bugün tekrar değerlendirme
+            continue
+        alerts.append(full)
 
     # 6. Özet mesajı: ALWAYS_SEND_SUMMARY açıksa her taramada (nabız mesajı),
     #    değilse sadece yeni sinyal varsa gönderilir.
-    if ALWAYS_SEND_SUMMARY or new_signals:
-        summary = format_summary(results, total_scanned=len(stock_data))
+    if ALWAYS_SEND_SUMMARY or alerts:
+        # Özet için tüm sinyallerin analist görüşü (temel analiz gün içi cache'li)
+        analysts = {}
+        for r in buy_signals:
+            f = get_fundamentals(r["ticker"])
+            analysts[r["ticker"]] = f.get("analyst") if f else None
+        summary = format_summary(results, total_scanned=len(stock_data),
+                                 regime=market_regime(), filtered=filtered, analysts=analysts)
         send_message(summary)
 
-    for result in new_signals:
-        # Bu hissenin geçmiş güvenilirliğini backtest'ten al (cache'li)
-        reliability = get_reliability(result["ticker"])
-        # Haber duygusunu çek (cache'li)
-        news = get_news_sentiment(result["ticker"]) if NEWS_ENABLED else None
-        msg = format_buy_signal(result, reliability=reliability, news=news)
+    # Sıralama: önce analistlerin de AL dediği, sonra en iyi karar, sonra en yüksek skor
+    alerts.sort(key=lambda a: (a["decision"]["analyst_buy"], a["decision"]["level"], a["tech"]["score"]),
+                reverse=True)
+    for a in alerts:
+        t = a["tech"]
+        header = None
+        if a["decision"]["analyst_buy"]:
+            header = (f"✅ <b>[{MARKET}] ALIM SİNYALİ + ANALİSTLER AL DİYOR: {t['ticker']}</b>"
+                      + (f" — {_esc(a['fund']['name'])}" if a["fund"] else ""))
+        msg = format_buy_signal(t, reliability=a["reliability"], news=a["news"], fund=a["fund"],
+                                decision=a["decision"], regime=a["regime"], header=header)
         ok = send_message(msg)
-        status = "GÖNDERILDI" if ok else "HATA"
-        news_str = f"| Haber: {news['label']}" if news else ""
+        if ok:
+            _should_alert(t["ticker"], t["score"])
+        if AI_REPORT_ON_SCAN:
+            from ai_report import generate_report
+            rep = generate_report(t["ticker"], t, a["fund"], a["news"], a["decision"], a["regime"])
+            if rep:
+                send_message(rep)
         logger.info(
-            f"  {result['ticker']} | Skor: {result['score']}/{result['max_score']} "
-            f"| RSI: {result['rsi']} | Güvenilirlik: {reliability['label']} "
-            f"{news_str} | Telegram: {status}"
+            f"  {t['ticker']} | Skor: {t['score']}/{t['max_score']} | Karar: {a['decision']['verdict']} "
+            f"| Temel: {a['fund']['total'] if a['fund'] else '—'} | Telegram: {'GÖNDERİLDİ' if ok else 'HATA'}"
         )
         time.sleep(0.5)
 
-    if not new_signals:
+    # Öne çıkan hisseleri anlık haber takibine ekle (bir süre haberleri izlenir)
+    flagged = [(a["tech"]["ticker"], a["fund"]["name"] if a["fund"] else a["tech"]["ticker"])
+               for a in alerts if a["decision"]["level"] >= 3 or a["decision"]["analyst_buy"]]
+    if flagged:
+        from news_watcher import flag_tickers
+        flag_tickers(flagged)
+
+    if not alerts:
         if buy_signals:
-            logger.info(f"{len(buy_signals)} sinyal var ama hepsi bugün zaten bildirildi (tekrar gönderilmedi).")
+            logger.info(f"{len(buy_signals)} teknik sinyal var ama yeni değil veya temel filtreye takıldı.")
         else:
             logger.info("Bu taramada alım sinyali çıkan hisse bulunamadı.")
 
@@ -220,8 +265,8 @@ def run_scheduler():
     send_message(
         f"🤖 <b>Borsa Analiz Botu Başlatıldı</b>\n"
         f"📅 Tarama: {zaman_bilgisi}\n"
-        f"🔍 BIST 100 hisseleri taranacak\n"
-        f"📊 Göstergeler: NVI, RSI, MACD, Bollinger, Hacim\n"
+        f"🔍 {MARKET} hisseleri taranacak\n"
+        f"📊 Teknik (trend, NVI, RSI, MACD, Bollinger, hacim) + temel analiz (borç, kârlılık, büyüme)\n"
         f"🔔 Sadece <b>yeni</b> veya güçlenen sinyaller bildirilir."
     )
 
@@ -250,6 +295,13 @@ if __name__ == "__main__":
         test_telegram()
     elif "--once" in args:
         run_scan(force=True)
+    elif "--news" in args:
+        from config import NEWS_WATCH_ENABLED
+        if NEWS_WATCH_ENABLED:
+            from news_watcher import check_news
+            check_news()
+        else:
+            logger.info("Haber takibi kapalı (NEWS_WATCH_ENABLED=False).")
     elif "--backtest" in args:
         run_backtest_cmd(args)
     else:

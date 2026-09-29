@@ -7,3 +7,4 @@ python-dotenv>=1.0.0
 schedule>=1.2.0
 ta>=0.11.0
 lxml>=4.9.0
+anthropic>=1.0.0

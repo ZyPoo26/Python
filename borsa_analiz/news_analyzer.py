@@ -35,6 +35,14 @@ _HEADERS = {
 # Gün içi tekrar tekrar aynı hissenin haberini çekmemek için gün bazlı cache.
 _news_cache: dict[str, dict[str, dict]] = {}
 
+# Aracı kurum / analist yorumu içeren başlıklar ("X Yatırım, THYAO için AL tavsiyesi")
+BROKER_RE = re.compile(
+    r"(hedef fiyat|tavsiye|model portföy|öneri listesi|önerisi|endeks üstü getiri|endeks altı getiri|"
+    r"price target|upgrade|downgrade|initiates|reiterate|outperform|underperform|overweight|underweight|"
+    r"\bbuy rating|\bsell rating)",
+    re.IGNORECASE,
+)
+
 
 def fetch_headlines(ticker: str, market: str | None = None) -> list[str]:
     """Google News RSS'ten hisseye dair son haber başlıklarını çeker."""
@@ -71,13 +79,23 @@ def score_headlines(ticker: str, headlines: list[str], market: str | None = None
     pos_hits = 0
     neg_hits = 0
     matched = []  # (başlık, yön) — kullanıcıya örnek göstermek için
+    broker_calls = []  # (başlık, yön) — aracı kurum yorumları
+
+    # Kelime BAŞINDAN eşleşme: "fine" → "define" içinde, "kar" → "şikar" içinde
+    # eşleşmesin; ama Türkçe ekleri yakalamak için sonu açık ("zarar" → "zararı").
+    pos_re = [re.compile(r"(?<!\w)" + re.escape(w.lower())) for w in pos_words]
+    neg_re = [re.compile(r"(?<!\w)" + re.escape(w.lower())) for w in neg_words]
 
     for title in headlines:
-        low = title.lower()
+        # Google News "Başlık - Kaynak" formatındadır; kaynak adını at
+        body = title.rsplit(" - ", 1)[0] if " - " in title else title
+        low = body.lower()
         # Hisse kodunu metinden çıkar ki kod harfleri kelimeye karışmasın
         low_clean = low.replace(ticker.lower(), " ")
-        title_pos = any(w.lower() in low_clean for w in pos_words)
-        title_neg = any(w.lower() in low_clean for w in neg_words)
+        title_pos = any(r.search(low_clean) for r in pos_re)
+        title_neg = any(r.search(low_clean) for r in neg_re)
+        if BROKER_RE.search(body):
+            broker_calls.append((body, "+" if title_pos and not title_neg else "-" if title_neg and not title_pos else "="))
         if title_pos and not title_neg:
             score += 1
             pos_hits += 1
@@ -107,6 +125,8 @@ def score_headlines(ticker: str, headlines: list[str], market: str | None = None
         "total_headlines": len(headlines),
         "strong_negative": score <= NEWS_STRONG_NEGATIVE,
         "examples": matched[:3],
+        "all_titles": headlines,
+        "broker_calls": broker_calls[:3],
     }
 
 
@@ -129,7 +149,7 @@ def get_news_sentiment(ticker: str, market: str | None = None) -> dict:
         result = {
             "score": 0, "label": "HABER YOK", "emoji": "📰⚪",
             "positive": 0, "negative": 0, "total_headlines": 0,
-            "strong_negative": False, "examples": [],
+            "strong_negative": False, "examples": [], "all_titles": [], "broker_calls": [],
         }
     else:
         result = score_headlines(ticker, headlines, market=market)
